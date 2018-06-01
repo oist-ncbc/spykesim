@@ -12,13 +12,13 @@ with open('LICENSE') as f:
     license = f.read()
 
 setup(
-    name='sample',
-    version='0.1.0',
-    description='Sample package for Python-Guide.org',
+    name='spykesim',
+    version='0.0.0',
+    description='Similarity mesurement between two segmented multi-neuronal spiking activities.',
     long_description=readme,
-    author='Kenneth Reitz',
-    author_email='me@kennethreitz.com',
-    url='https://github.com/kennethreitz/samplemod',
+    author='Keita Watanabe',
+    author_email='keitaw09@gmail.com',
+    url='https://github.com/KeitaW/spikesim',
     license=license,
     packages=find_packages(exclude=('tests', 'docs'))
 )
