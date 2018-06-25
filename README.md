@@ -17,7 +17,7 @@ PAPERCITATION
 This project offers four variants of edit similarity measurement, simple, linear gap penalty, local alignment with linear gap penalty, local alignment with exponentially growing gap penalty.
 
 # Simple
-Let $\epsilon_{j}^{i}$ be the number of partial coincidences obtained up to the $i\mathchar`-\mathrm{th}$ element of $W(1)$ and the $j\mathchar`-\mathrm{th}$ element of $W(2)$.
+Let $\epsilon_{j}^{i}$ be the number of partial coincidences obtained up to the $i$-th element of $W(1)$ and the $j$-th element of $W(2)$.
 $$
   \epsilon_{j}^{i} = \max
   \begin{cases}

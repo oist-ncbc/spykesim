@@ -1,0 +1,7 @@
+IFILE = "setup.py"
+
+rule all:
+    input:
+        IFILE
+    shell:
+        "python setup.py build_ext --inplace"
