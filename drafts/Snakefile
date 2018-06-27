@@ -5,3 +5,8 @@ rule all:
         IFILE
     shell:
         "python setup.py build_ext --inplace"
+rule clean:
+    input:
+        IFILE
+    shell:
+        "rm -rf *.so editsim.c build"
