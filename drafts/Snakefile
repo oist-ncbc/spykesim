@@ -10,3 +10,6 @@ rule clean:
         IFILE
     shell:
         "rm -rf *.so editsim.c build"
+rule http:
+    shell:
+        "python http.server"
