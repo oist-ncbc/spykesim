@@ -129,3 +129,25 @@ def csimpleeditsim_align(bp, mat1, mat2):
     return alignment1[:, :-1], alignment2[:, :-1]
 
 
+from cython.parallel import prange, parallel
+cimport openmp
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef cysumpar(np.ndarray[double] A):
+    cdef double tot=0.
+    cdef int i, n=A.size
+    with nogil, parallel(num_threads=20):
+        for i in prange(n):
+            for i in range(100000):
+                tot += A[i]
+    return tot
+
+cimport openmp
+
+def func(double[:] x, double alpha):
+    cdef int num_threads
+    openmp.omp_set_dynamic(48)
+    cdef Py_ssize_t i
+    with nogil, parallel():
+        for i in range(10000):
+            x[i] = alpha * x[i]
