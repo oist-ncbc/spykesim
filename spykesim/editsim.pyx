@@ -2,6 +2,12 @@ cimport cython
 import numpy as np
 cimport numpy as np
 from libc.math cimport exp
+
+cimport openmp
+from libc.math cimport log
+from cython.parallel cimport prange
+from cython.parallel cimport parallel
+
 DBL = np.double
 ctypedef np.double_t DBL_C
 INT = np.int
@@ -195,7 +201,7 @@ def clocal_exp_editsim(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):
                 dp_max_y = col2 + 1
     return dp_max, dp_max_x, dp_max_y        
 
-def clocal_exp_editsim_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2, a = 0.01):
+def clocal_exp_editsim_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2, DBL_C a = 0.01):
     cdef DBL_C dp_max1
     cdef INT_C dp_max_x1, dp_max_y1
     cdef DBL_C dp_max2
@@ -209,7 +215,7 @@ def clocal_exp_editsim_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2, a = 0.01):
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(True)  # turn off negative index wrapping for entire function        
-def local_exp_editsim_withbp(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):
+cpdef clocal_exp_editsim_withbp(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):
     cdef int nrow, ncol, nneuron
     cdef int col1, col2, row      
     nrow = mat1.shape[1]
@@ -261,14 +267,14 @@ def local_exp_editsim_withbp(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01)
                 dp_max_y = col2 + 1
     return dp_max, dp_max_x, dp_max_y, bp
 
-def clocal_exp_editsim_withbp_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2, a = 0.01):
+def clocal_exp_editsim_withbp_withflip(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):
     cdef DBL_C dp_max1
     cdef INT_C dp_max_x1, dp_max_y1
     cdef DBL_C dp_max2
     cdef INT_C dp_max_x2, dp_max_y2
-    cdef np.ndarray[DBL_C, ndim=2] bp1, bp2
-    dp_max1, dp_max_x1, dp_max_y1, bp1 = clocal_exp_editsim(mat1, mat2, a)
-    dp_max2, dp_max_x2, dp_max_y2, bp2 = clocal_exp_editsim(mat1, mat2[:, ::-1], a)
+    cdef np.ndarray[INT_C, ndim=2] bp1, bp2
+    dp_max1, dp_max_x1, dp_max_y1, bp1 = clocal_exp_editsim_withbp(mat1, mat2, a)
+    dp_max2, dp_max_x2, dp_max_y2, bp2 = clocal_exp_editsim_withbp(mat1, mat2[:, ::-1], a)
     if dp_max1 >= dp_max2:
         return dp_max1, dp_max_x1, dp_max_y1, bp1, False
     else:
@@ -339,3 +345,67 @@ def eval_shrinkage(INT_C [:, :] bp, INT_C dp_max_x, INT_C dp_max_y, bint flip = 
         return -(dp_max_x - row) / (dp_max_y - col)
     else:
         return (dp_max_x - row) / (dp_max_y - col)
+
+# test openmp
+from cython cimport boundscheck, wraparound
+from cython.parallel import prange
+cimport openmp
+cdef inline double norm2(double complex z)nogil:
+    return z.real*z.real+z.imag*z.imag
+
+cdef int escape(double complex z,
+                double complex c,
+                double zmax,
+                int nmax)nogil:
+    cdef:
+        int i = 0
+        double square_zmax = zmax*zmax
+    while norm2(z) < zmax and i < nmax:
+        z = z*z+c
+        i += 1
+    return i
+
+@boundscheck(False)
+@wraparound(False)
+def calc_julia(int resolution,
+                double complex c,
+                double bound=1.5,
+                double zmax=4.0,
+                int nmax=1000):
+    cdef:
+        double step = 2.0*bound/resolution
+        int i, j
+        double complex z
+        double real, imag
+        int[:, ::1] counts
+
+    counts = np.zeros((resolution+1, resolution+1), dtype=np.int32)
+
+    for i in prange(resolution+1,nogil=True,schedule='static',chunksize=1):
+        real = -bound+i*step
+        for j in range(resolution+1):
+            imag = -bound+j*step
+            z = real+imag*1j
+            counts[i, j] = escape(z, c, zmax, nmax)
+
+    return np.asarray(counts)
+ 
+def test_parallel():
+    THOUSAND = 1024
+    FACTOR = 100
+    NUM_TOTAL_ELEMENTS = FACTOR * THOUSAND * THOUSAND
+    X1 = -1 + 2*np.random.rand(NUM_TOTAL_ELEMENTS)
+    X2 = -1 + 2*np.random.rand(NUM_TOTAL_ELEMENTS)
+    Y = np.zeros(X1.shape)
+    parallel_loop(X1,X2,Y)
+ 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def parallel_loop(double[:] A, double[:] B, double[:] C):
+    cdef int N = A.shape[0]
+    cdef int i
+ 
+    with nogil:
+        for i in prange(N, schedule='static'):
+            C[i] = log(A[i]) * log(B[i])
+
