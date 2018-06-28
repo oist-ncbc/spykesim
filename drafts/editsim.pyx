@@ -61,8 +61,8 @@ def csimpleeditsim(DBL_C [:, :] mat1, DBL_C [:, :] mat2):
     return dp[-1, -1]
 
 def csimpleeditsim_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2):
-    cdef DBL_C dp_max1 = local_exp_editsim(mat1, mat2)
-    cdef DBL_C dp_max2 = local_exp_editsim(mat1, mat2[:, ::-1])
+    cdef DBL_C dp_max1 = csimpleeditsim(mat1, mat2)
+    cdef DBL_C dp_max2 = csimpleeditsim(mat1, mat2[:, ::-1])
     if dp_max1 >= dp_max2:
         return dp_max1, False
     else:
@@ -96,8 +96,8 @@ def csimpleeditsim_withbp(DBL_C [:, :] mat1, DBL_C [:, :] mat2):
 def csimpleeditsim_withbp_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2):
     cdef DBL_C dp_max1, dp_max2
     cdef np.ndarray[DBL_C, ndim=2] bp1, bp2
-    dp_max1, bp1 = local_exp_editsim(mat1, mat2)
-    dp_max2, bp2 = local_exp_editsim(mat1, mat2[:, ::-1])
+    dp_max1, bp1 = csimpleeditsim_withbp(mat1, mat2)
+    dp_max2, bp2 = csimpleeditsim_withbp(mat1, mat2[:, ::-1])
     if dp_max1 >= dp_max2:
         return dp_max1, bp1, False
     else:
@@ -107,27 +107,31 @@ def csimpleeditsim_withbp_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2):
 @cython.wraparound(True)  # turn off negative index wrapping for entire function        
 def csimleeditsim_align(INT_C[:, :] bp, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):
     cdef INT_C nrow, ncol, nneuron
-    cdef INT_C col1, col2, row, col
+    cdef INT_C col1, col2, row, col, i
+    cdef DBL_C [:, :] mat2
     if flip:
-        cdef DBL_C [:, :] mat2 = mat2_[:, ::-1]
+        mat2 = mat2_[:, ::-1]
     else:
-        cdef DBL_C [:, :] mat2 = mat2_
-    else:
-    cdef INT_C nrow = bp.shape[0]
-    cdef INT_C ncol = bp.shape[1]
-    cdef INT_C row = nrow - 1
-    cdef INT_C col = ncol - 1
+        mat2 = mat2_
+    nneuron = mat1.shape[0]
+    nrow = bp.shape[0]
+    ncol = bp.shape[1]
+    row = nrow - 1
+    col = ncol - 1
     # The first column is inserted just to avoid initialization error that may occur on concatination.
     cdef np.ndarray[DBL_C, ndim=2] alignment1 = np.zeros((mat1.shape[0], 1), dtype = DBL)
     cdef np.ndarray[DBL_C, ndim=2] alignment2 = np.zeros((mat1.shape[0], 1), dtype = DBL)
     cdef np.ndarray[DBL_C, ndim=2] zerovec = np.zeros(mat1.shape[0], dtype = DBL) # which is corresponding to the null character.
+    cdef np.ndarray[DBL_C, ndim=1] match = np.zeros(mat1.shape[0], dtype = DBL)
     while True:
         if bp[row, col] == -1:
             # Eather of the strings tracing terminated
             break
         elif bp[row, col] == 2:
-            alignment1 = np.c_[mat1[:, row - 1] * mat2[:, col - 1], alignment1]
-            alignment2 = np.c_[mat1[:, row - 1] * mat2[:, col - 1], alignment2]
+            for i in range(nneuron):
+                match[i] = mat1[i, row] * mat2[i, col]            
+            alignment1 = np.c_[match, alignment1]
+            alignment2 = np.c_[match, alignment2]
             row -= 1
             col -= 1
         elif bp[row, col] == 1:
@@ -196,8 +200,8 @@ def clocal_exp_editsim_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2, a = 0.01):
     cdef INT_C dp_max_x1, dp_max_y1
     cdef DBL_C dp_max2
     cdef INT_C dp_max_x2, dp_max_y2
-    dp_max1, dp_max_x1, dp_max_y1 = local_exp_editsim(mat1, mat2, a)
-    dp_max2, dp_max_x2, dp_max_y2 = local_exp_editsim(mat1, mat2[:, ::-1], a)
+    dp_max1, dp_max_x1, dp_max_y1 = clocal_exp_editsim(mat1, mat2, a)
+    dp_max2, dp_max_x2, dp_max_y2 = clocal_exp_editsim(mat1, mat2[:, ::-1], a)
     if dp_max1 >= dp_max2:
         return dp_max1, dp_max_x1, dp_max_y1, False
     else:
@@ -263,34 +267,38 @@ def clocal_exp_editsim_withbp_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2, a =
     cdef DBL_C dp_max2
     cdef INT_C dp_max_x2, dp_max_y2
     cdef np.ndarray[DBL_C, ndim=2] bp1, bp2
-    dp_max1, dp_max_x1, dp_max_y1, bp1 = local_exp_editsim(mat1, mat2, a)
-    dp_max2, dp_max_x2, dp_max_y2, bp2 = local_exp_editsim(mat1, mat2[:, ::-1], a)
+    dp_max1, dp_max_x1, dp_max_y1, bp1 = clocal_exp_editsim(mat1, mat2, a)
+    dp_max2, dp_max_x2, dp_max_y2, bp2 = clocal_exp_editsim(mat1, mat2[:, ::-1], a)
     if dp_max1 >= dp_max2:
         return dp_max1, dp_max_x1, dp_max_y1, bp1, False
     else:
         return dp_max2, dp_max_x2, dp_max_y2, bp2, True
 
-def clocal_exp_editsim_align(INT_C[:, :] bp, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):
+def clocal_exp_editsim_align(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):
     cdef INT_C roww, ncol, nneuron
-    cdef INT_C col1, col2, row, col
+    cdef INT_C col1, col2, row, col, i
+    cdef DBL_C [:, :] mat2
     if flip:
-        cdef DBL_C [:, :] mat2 = mat2_[:, ::-1]
+        mat2 = mat2_[:, ::-1]
     else:
-        cdef DBL_C [:, :] mat2 = mat2_
-    else:
+        mat2 = mat2_
+    nneuron = mat1.shape[0]
     row = dp_max_x
     col = dp_max_y
     # The first column is inserted just to avoid initialization error that may occur on concatination.
     cdef np.ndarray[DBL_C, ndim=2] alignment1 = np.zeros((mat1.shape[0], 1), dtype = DBL)
     cdef np.ndarray[DBL_C, ndim=2] alignment2 = np.zeros((mat1.shape[0], 1), dtype = DBL)
     cdef np.ndarray[DBL_C, ndim=2] zerovec = np.zeros(mat1.shape[0], dtype = DBL) # which is corresponding to the null character.
+    cdef np.ndarray[DBL_C, ndim=1] match = np.zeros(mat1.shape[0], dtype = DBL)
     while True:
         if bp[row, col] == -1:
             # Eather of the strings tracing terminated
             break
         elif bp[row, col] == 3:
-            alignment1 = np.c_[mat1[:, row - 1] * mat2[:, col - 1], alignment1]
-            alignment2 = np.c_[mat1[:, row - 1] * mat2[:, col - 1], alignment2]
+            for i in range(nneuron):
+                match[i] = mat1[i, row] * mat2[i, col]            
+            alignment1 = np.c_[match, alignment1]
+            alignment2 = np.c_[match, alignment2]
             row -= 1
             col -= 1
         elif bp[row, col] == 2:
@@ -303,12 +311,12 @@ def clocal_exp_editsim_align(INT_C[:, :] bp, DBL_C[:, :] mat1, DBL_C[:, :] mat2_
             row -= 1
         elif bp[row, col] == 0:
             break
-         while row > 1:
-             alignment1 = np.c_[mat1[:, row - 1], alignment1]
-             row = row - 1
-         while col > 1:
-             alignment2 = np.c_[mat2[:, col - 1], alignment2]
-             col = col - 1
+        while row > 1:
+            alignment1 = np.c_[mat1[:, row - 1], alignment1]
+            row = row - 1
+        while col > 1:
+            alignment2 = np.c_[mat2[:, col - 1], alignment2]
+            col = col - 1
     return alignment1[:, :-1], alignment2[:, :-1]
 
 def eval_shrinkage(INT_C [:, :] bp, INT_C dp_max_x, INT_C dp_max_y, bint flip = False):
