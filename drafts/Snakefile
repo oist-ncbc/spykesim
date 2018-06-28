@@ -12,4 +12,4 @@ rule clean:
         "rm -rf *.so editsim.c build"
 rule http:
     shell:
-        "python http.server"
+        "python -m http.server"
