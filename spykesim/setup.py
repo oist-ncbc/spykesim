@@ -16,6 +16,8 @@ from distutils.core import setup
 from Cython.Build import cythonize
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
+import Cython.Compiler.Options
+Cython.Compiler.Options.annotate = True
 import numpy  
 setup(
   name = "editsim",
@@ -25,8 +27,11 @@ setup(
   [
     Extension("editsim",
               ["editsim.pyx"],
-              extra_compile_args = ["-O0", "-fopenmp"],
-              extra_link_args=['-fopenmp']
+              extra_compile_args = ["-O0"],
+              ),
+    Extension("minhash",
+              ["minhash.pyx"],
+              extra_compile_args = ["-O0"],
               )
   ]
 )
