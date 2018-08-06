@@ -5,12 +5,9 @@ from libc.math cimport exp
 from libc.math cimport log
 import multiprocessing
 import ctypes
-from joblib import Parallel, delayed
-from tqdm import tqdm, tqdm_notebook
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from logging import StreamHandler, Formatter, INFO, getLogger
 from functools import partial
 import os
+from ..utils.parallel import parallel_process
 
 
 DBL = np.double
@@ -351,77 +348,14 @@ def eval_shrinkage(INT_C [:, :] bp, INT_C dp_max_x, INT_C dp_max_y, bint flip = 
     else:
         return (dp_max_x - row) / (dp_max_y - col)
 
-def init_logger():
-    handler = StreamHandler()
-    handler.setLevel(INFO)
-    handler.setFormatter(Formatter("[%(asctime)s] [%(threadName)s] %(message)s"))
-    logger = getLogger()
-    if (logger.hasHandlers()):
-        logger.handlers.clear()    
-    logger.addHandler(handler)
-    logger.setLevel(INFO)
-
-def parallel_process(array, function, n_jobs=48, use_kwargs=False, front_num=2, notebook = False):
-    """
-        A parallel version of the map function with a progress bar. 
-        The original function is retrieved from http://danshiebler.com/2016-09-14-parallel-progress-bar/
-        Args:
-            array (array-like): An array to iterate over.
-            function (function): A python function to apply to the elements of array
-            n_jobs (int, default=16): The number of cores to use
-            use_kwargs (boolean, default=False): Whether to consider the elements of array as dictionaries of 
-                keyword arguments to function 
-            front_num (int, default=3): The number of iterations to run serially before kicking off the parallel job. 
-                Useful for catching bugs
-        Returns:
-            [function(array[0]), function(array[1]), ...]
-    """
-    #We run the first few iterations serially to catch bugs
-    # Map filter reduceを使って書き直したい
-    tqdm_ = tqdm_notebook if notebook else tqdm
-    init_logger()
-    getLogger().info("calculation start")
-    if front_num > 0:
-        front = [function(**a) if use_kwargs else function(a) for a in array[:front_num]]
-    #If we set n_jobs to 1, just run a list comprehension. This is useful for benchmarking and debugging.
-    if n_jobs==1:
-        return front + [function(**a) if use_kwargs else function(a) for a in tqdm_(array[front_num:])]
-    #Assemble the workers
-    with ProcessPoolExecutor(max_workers=n_jobs) as pool:
-        #Pass the elements of array into function
-        if use_kwargs:
-            futures = [pool.submit(function, **a) for a in array[front_num:]]
-        else:
-            futures = [pool.submit(function, a) for a in array[front_num:]]
-        getLogger().info("submit end")
-        kwargs = {
-            'total': len(futures),
-            'unit': 'it',
-            'unit_scale': True,
-            'leave': True
-        }
-        #Print out the progress as tasks complete
-        getLogger().info("Progress of the calculation")
-        for f in tqdm_(as_completed(futures), **kwargs):
-            pass
-    out = []
-    #Get the results from the futures.
-    getLogger().info("Progress of the aggregation")
-    for i, future in tqdm_(enumerate(futures)):
-        try:
-            out.append(future.result())
-        except Exception as e:
-            out.append(e)
-    getLogger().info("calculation end")
-    return front + out
-def eval_simmat(binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, INT_C njobs = -1, DBL_C a = 0.01, backend="joblib"):
+def eval_simmat(binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, INT_C njobs = -1, DBL_C a = 0.01):
     if lsh:
         times = None
-        return eval_simmat(times, binarray_csc, window, slidewidth, lsh, a, backend)
+        return eval_simmat(times, binarray_csc, window, slidewidth, lsh, a)
     else:
         nneuron, duration = binarray_csc.shape
         times = np.arange(0, duration-window, slidewidth)
-        return _eval_simmat(times, binarray_csc, window, slidewidth, lsh, a, backend)
+        return _eval_simmat(times, binarray_csc, window, slidewidth, lsh, a)
 
 def _eval_simvec(idx1, t1, times, binarray_csc, window, a):
     simvec = np.zeros(len(times))
@@ -432,7 +366,7 @@ def _eval_simvec(idx1, t1, times, binarray_csc, window, a):
         simvec[idx2] = dp_max
     return (simvec, idx1)
 
-def _eval_simmat(times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, DBL_C a = 0.01, backend = "joblib", njobs = -1):
+def _eval_simmat(times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, DBL_C a = 0.01, njobs = -1):
     njobs = os.cpu_count() if njobs == -1 else njobs
     simmat = np.zeros((len(times), len(times)))
     worker = partial(
@@ -442,67 +376,17 @@ def _eval_simmat(times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200
         window = window,
         a = a
     )
-    if backend == "joblib":
-        results = []
-        results = Parallel(n_jobs= njobs, backend="threading")(
-                delayed(_eval_simvec)(
-                idx1, t1, times, binarray_csc, window, a
-                ) for idx1, t1 in enumerate(times)
-            )
-        for simvec, idx1 in results:
-            simmat[idx1, :] = simvec
-    elif backend == "multiprocessing1":
-        pool = multiprocessing.Pool(njobs)
-        #jobs = [
-        #   pool.apply_async(_eval_simvec, args = (idx1, t1, times, binarray_csc, window, a))
-        #   for idx1, t1 in enumerate(times)
-        #results = map(lambda x: x.get, 
-        #    map(
-        #        lambda x: pool.apply_async(worker, args = (x[0], x[1])),
-        #        enumerate(times)
-        #    )
-        #)
-        a =  pool.starmap(
-              worker, enumerate(times)
-          )
-        print(a)
-        results = map(lambda x: x.get, 
-                      pool.starmap(
-                          worker, enumerate(times)
-                      ))
-        for simvec, idx in results:
-            simmat[idx, :] = simvec
-        #for job in jobs:
-        #    simvec, idx1 = job.get()
-        #    simmat[idx1, :] = simvec
-        #for simvec, idx1 in jobs:
-        #    simmat[idx1, :] = simvec
-        #for job in jobs:
-        #    simvec, idx1 = job.get()
-        #    simmat[idx1, :] = simvec
-        pool.close()
-    elif backend == "multiprocessing2":
-        pool = multiprocessing.Pool(njobs)
-        jobs = [
-           pool.apply_async(worker, args = (idx1, t1))
-           for idx1, t1 in enumerate(times)
-        ]
-        for job in jobs:
-            simvec, idx1 = job.get()
-            simmat[idx1, :] = simvec
-        pool.close()
-    elif backend == "tqdm":
-        args = [{
-            "idx1": idx1,
-            "t1": t1,
-            "times": times,
-            "binarray_csc": binarray_csc,
-            "window": window,
-            "a": a
-        } for idx1, t1 in enumerate(times)]
-        results = parallel_process(args, _eval_simvec, njobs, use_kwargs = True)
-        for simvec, idx1 in results:
-            simmat[idx1, :] = simvec
+    args = [{
+        "idx1": idx1,
+        "t1": t1,
+        "times": times,
+        "binarray_csc": binarray_csc,
+        "window": window,
+        "a": a
+    } for idx1, t1 in enumerate(times)]
+    results = parallel_process(args, _eval_simvec, njobs, use_kwargs = True)
+    for simvec, idx1 in results:
+        simmat[idx1, :] = simvec
 
     return simmat, times
 
