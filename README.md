@@ -17,15 +17,9 @@ PAPERCITATION
 This project offers four variants of edit similarity measurement, simple, linear gap penalty, local alignment with linear gap penalty, local alignment with exponentially growing gap penalty.
 
 # Simple
-Let <a href="https://www.codecogs.com/eqnedit.php?latex=\epsilon_{j}^{i}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\epsilon_{j}^{i}" title="\epsilon_{j}^{i}" /></a> $\epsilon_{j}^{i}$ be the number of partial coincidences obtained up to the $i$-th element of $W(1)$ and the $j$-th element of $W(2)$.
-$$
-  \epsilon_{j}^{i} = \max
-  \begin{cases}
-  \epsilon_{j}^{i - 1} \\
-  \epsilon_{j - 1}^{i} \\
-  \epsilon_{j - 1}^{i - 1} + \delta(W(1)\lbrack j\rbrack,W(2)\lbrack i\rbrack) \\ 
-  \end{cases}
-$$
+Let <a href="https://www.codecogs.com/eqnedit.php?latex=\epsilon_{j}^{i}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\epsilon_{j}^{i}" title="\epsilon_{j}^{i}" /></a> be the number of partial coincidences obtained up to the i-th element of <a href="https://www.codecogs.com/eqnedit.php?latex=W(1)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?W(1)" title="W(1)" /></a> and the j-th element of <a href="https://www.codecogs.com/eqnedit.php?latex=W(2)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?W(2)" title="W(2)" /></a>.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\epsilon_{j}^{i}&space;=&space;\max&space;\begin{cases}&space;\epsilon_{j}^{i&space;-&space;1}&space;\\&space;\epsilon_{j&space;-&space;1}^{i}&space;\\&space;\epsilon_{j&space;-&space;1}^{i&space;-&space;1}&space;&plus;&space;\delta(W(1)\lbrack&space;j\rbrack,W(2)\lbrack&space;i\rbrack)&space;\\&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\epsilon_{j}^{i}&space;=&space;\max&space;\begin{cases}&space;\epsilon_{j}^{i&space;-&space;1}&space;\\&space;\epsilon_{j&space;-&space;1}^{i}&space;\\&space;\epsilon_{j&space;-&space;1}^{i&space;-&space;1}&space;&plus;&space;\delta(W(1)\lbrack&space;j\rbrack,W(2)\lbrack&space;i\rbrack)&space;\\&space;\end{cases}" title="\epsilon_{j}^{i} = \max \begin{cases} \epsilon_{j}^{i - 1} \\ \epsilon_{j - 1}^{i} \\ \epsilon_{j - 1}^{i - 1} + \delta(W(1)\lbrack j\rbrack,W(2)\lbrack i\rbrack) \\ \end{cases}" /></a>
 
 # Local alignment (Not yet implmented)
 
