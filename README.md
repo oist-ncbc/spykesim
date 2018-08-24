@@ -12,9 +12,12 @@ PAPERCITATION
 
 ## User installation
 
+# Tutorial 
 
-# Tutorial
-This project offers four variants of edit similarity measurement, simple, linear gap penalty, local alignment with linear gap penalty, local alignment with exponentially growing gap penalty.
+# Algorithms
+
+# Similarity measures
+This project offers variants of edit similarity measurement, simple, linear gap penalty, local alignment with linear gap penalty, and local alignment with exponentially growing gap penalty.
 
 # Simple
 Let <a href="https://www.codecogs.com/eqnedit.php?latex=\epsilon_{j}^{i}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\epsilon_{j}^{i}" title="\epsilon_{j}^{i}" /></a> be the number of partial coincidences obtained up to the i-th element of <a href="https://www.codecogs.com/eqnedit.php?latex=W(1)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?W(1)" title="W(1)" /></a> and the j-th element of <a href="https://www.codecogs.com/eqnedit.php?latex=W(2)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?W(2)" title="W(2)" /></a>$W(2)$.
