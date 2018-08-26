@@ -7,7 +7,9 @@ import multiprocessing
 import ctypes
 from functools import partial
 import os
-from ..utils.parallel import parallel_process
+from .parallel import parallel_process
+from .minhash import generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar
+from scipy.sparse import lil_matrix
 
 
 DBL = np.double
@@ -348,10 +350,15 @@ def eval_shrinkage(INT_C [:, :] bp, INT_C dp_max_x, INT_C dp_max_y, bint flip = 
     else:
         return (dp_max_x - row) / (dp_max_y - col)
 
-def eval_simmat(binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, INT_C njobs = -1, DBL_C a = 0.01):
+def eval_simmat(binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
+                bint lsh=False, INT_C njobs = -1,
+                numband = 5, bandwidth = 4,
+                DBL_C a = 0.01):
     if lsh:
         times = None
-        return eval_simmat(times, binarray_csc, window, slidewidth, lsh, a)
+        numhash = numband * bandwidth
+        return _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, window, slidewidth,
+                                    a, njobs)
     else:
         nneuron, duration = binarray_csc.shape
         times = np.arange(0, duration-window, slidewidth)
@@ -384,11 +391,72 @@ def _eval_simmat(times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200
         "window": window,
         "a": a
     } for idx1, t1 in enumerate(times)]
-    results = parallel_process(args, _eval_simvec, njobs, use_kwargs = True)
+    results = parallel_process(args, _eval_simvec, njobs, use_kwargs=True)
     for simvec, idx1 in results:
         simmat[idx1, :] = simvec
 
     return simmat, times
 
-def eval_simmat_minhash(binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, DBL_C a = 0.01):
-    raise NotImplementedError
+def _get_nonzero_indices(idx, indices, indptr, col, span):
+    """
+    get nonzero indices from indices and indptr of a csr matrix
+    """
+    return idx, indices[indptr[col]:indptr[col+span]]
+
+    #times = range(0, binarray_csc.shape[1] - window, slidewidth)
+    #idmat = np.zeros((binarray_csc.shape[0], len(times)))
+    #for idx, col in enumerate(times):
+    #    indices = _get_nonzero_indices(
+    #        binarray_csc.indices,
+    #        binarray_csc.indptr,
+    #        col,
+    #        window
+    #    )
+    #    idmat[indices, idx] = 1
+    #return idmat, times
+
+
+def _get_idmat_multi(binarray_csc, window, slidewidth, njobs):
+    """
+    TODO: bug fix
+    """
+    times = range(0, binarray_csc.shape[1] - window, slidewidth)
+    worker = partial(
+        _get_nonzero_indices,
+        indices=binarray_csc.indices,
+        indptr=binarray_csc.indptr,
+        span=window
+    )
+    args = [{
+        "idx": idx,
+        "col": col
+    } for idx, col in enumerate(times)] 
+    results = parallel_process(args, worker, njobs, use_kwargs=True)
+    idmat = np.zeros((binarray_csc.shape[0], len(times)))
+    for idx, indices in results:
+        idmat[indices, idx] = 1
+    return idmat, times
+
+def _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
+                         DBL_C a = 0.01, njobs=12):
+    idmat, times = _get_idmat_multi(binarray_csc, window, slidewidth, njobs)
+    sigmat = generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, idmat, njobs)
+    bucket_list = generate_bucket_list_single(numhash, numband, bandwidth, sigmat)
+    candidate_pairs = set()
+    for idx1, t1 in enumerate(times):
+        indices = find_similar(numhash, numband, bandwidth, sigmat, bucket_list, idx1)
+        for idx2 in indices:
+            t2 = times[idx2]
+            candidate_pairs.add((idx1, idx2, t1, t2))
+    simmat_lil = lil_matrix((len(times), len(times)))
+    for idx1, idx2, t1, t2 in candidate_pairs:
+        dp_max, _, _, _ = clocal_exp_editsim_withflip(binarray_csc[:, t1:(t1+window)].toarray().astype(DBL),
+                                                                        binarray_csc[:, t1:(t1+window)].toarray().astype(DBL), a)
+        simmat_lil[idx1, idx2] = dp_max
+    return simmat_lil, times
+
+
+        
+
+    
+

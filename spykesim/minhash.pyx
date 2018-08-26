@@ -1,5 +1,10 @@
+import os
+cimport cython
 import numpy as np
-
+cimport numpy as np
+from functools import partial
+from .pymmh3 import hash128
+from .parallel import parallel_process
 
 class MinHash(object):
     def __init__(self, numband, bandwidth):
@@ -14,29 +19,30 @@ def hash_fn(key, seed=0):
     return (a * b * (key + seed + 1)) & 0x7FFFFFFF
 
 
+
 def minhash(words, seed=0):
     current_min = np.inf
     minhash_word = None
     for word in words:
-        hash_ = hash_fn(word, seed)
+        hash_ = hash128(word, seed)
         if hash_ < current_min:
             minhash_word = word
             current_min = hash_
     return minhash_word
 
 
-def generate_signature_matrix(minhash, data, mode="cpu"):
-    if mode == "cpu":
-        return _generate_signature_matrix_cpu(
+def generate_signature_matrix(minhash, data, mode="cpu", njobs=-1):
+    if mode == "cpu" and njobs == 1:
+        return generate_signature_matrix_cpu_single(
             minhash.numhash, minhash.numband, minhash.bandwidth, data)
-    elif mode == "multiprocessing":
-        return _generate_signature_matrix_cpu(
-            minhash.numhash, minhash.numband, minhash.bandwidth, data)
+    elif mode == "cpu":
+        return generate_signature_matrix_cpu_multi(
+            minhash.numhash, minhash.numband, minhash.bandwidth, data, njobs)
     else:
-        raise RuntimeError('Option must be eather cpu or gpu')
+        raise RuntimeError('Option must be eather cpu')
 
 
-def _generate_signature_matrix_cpu(numhash, numband, bandwidth, data):
+def generate_signature_matrix_cpu_single(numhash, numband, bandwidth, data):
     signature_matrix = np.zeros((numhash, data.shape[1]), dtype=np.uint32)
     for row in range(numhash):
         for col in range(data.shape[1]):
@@ -46,6 +52,55 @@ def _generate_signature_matrix_cpu(numhash, numband, bandwidth, data):
             else:
                 signature_matrix[row, col] = hash_fn(3511 * col, seed=row)
     return signature_matrix
+
+def _generate_signature_vec(numhash, numband, bandwidth, data, col):
+    signature_vec = np.zeros(numhash, dtype=np.uint32)
+    idsets = np.where(data[:, col] >= 1)[0]
+    for row in range(numhash):
+        if len(idsets) > 0:
+            signature_vec[row] = minhash(idsets, seed=row)
+        else:
+            signature_vec[row] = hash_fn(3511 * col, seed=row)
+    return col, signature_vec
+
+def generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, data, njobs):
+    njobs = os.cpu_count() if njobs == -1 else njobs
+    signature_matrix = np.zeros((numhash, data.shape[1]), dtype=np.uint32)
+    worker = partial(
+        _generate_signature_vec,
+        numhash=numhash,
+        numband=numband,
+        bandwidth=bandwidth,
+        data=data,
+    )
+    args = [{
+        "col": col
+    } for col in range(data.shape[1])]
+    results = parallel_process(args, worker, njobs, use_kwargs = True)
+    for col, sigvec in results:
+        signature_matrix[:, col] = sigvec
+    return signature_matrix
+
+def generate_bucket_list_single(numhash, numband, bandwidth, signature_matrix):
+    bucket_list = []
+    for band in range(0, numhash, bandwidth):
+        bucket = dict()
+        for col in range(signature_matrix.shape[1]):
+            hash_ = hash128(signature_matrix[band:(band+bandwidth), col], band)
+            if not hash_ in bucket:
+                bucket[hash_] = set()
+            bucket[hash_].add(col)
+        if len(bucket) > 0:
+            bucket_list.append(bucket)
+    return bucket_list
+
+def find_similar(numhash, numband, bandwidth, signature_matrix, bucket_list, col):
+    candidates = set()
+    for idx, band in enumerate(range(0, numhash, bandwidth)):
+        hash_ = hash128(signature_matrix[band:(band+bandwidth), col], band)
+        for item in bucket_list[idx][hash_]:
+            candidates.add(item)
+    return candidates
 
 
 def main():
@@ -77,12 +132,6 @@ def main():
     print("Signature Matrix calculated on CPU")
     print(sm_cpu)
 
-    print("Signature Matrix calculation on GPU starts")
-    start_time = time.time()
-    sm_gpu = generate_signature_matrix(mh, data, mode="gpu")
-    print("--- %s seconds ---" % (time.time() - start_time))
-    print("Signature Matrix calculated on GPU")
-    print(sm_gpu)
 
 
 if __name__ == "__main__":
