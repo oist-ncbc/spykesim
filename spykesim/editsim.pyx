@@ -9,7 +9,7 @@ from functools import partial
 import os
 from .parallel import parallel_process
 from .minhash import generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar
-from scipy.sparse import lil_matrix
+from scipy.sparse import lil_matrix, csr_matrix
 
 
 DBL = np.double
@@ -383,6 +383,7 @@ def _eval_simmat(times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200
         window = window,
         a = a
     )
+    worker.__name__ = _eval_simvec.__name__
     args = [{
         "idx1": idx1,
         "t1": t1,
@@ -403,30 +404,14 @@ def _get_nonzero_indices(idx, indices, indptr, col, span):
     """
     return idx, indices[indptr[col]:indptr[col+span]]
 
-    #times = range(0, binarray_csc.shape[1] - window, slidewidth)
-    #idmat = np.zeros((binarray_csc.shape[0], len(times)))
-    #for idx, col in enumerate(times):
-    #    indices = _get_nonzero_indices(
-    #        binarray_csc.indices,
-    #        binarray_csc.indptr,
-    #        col,
-    #        window
-    #    )
-    #    idmat[indices, idx] = 1
-    #return idmat, times
-
-
-def _get_idmat_multi(binarray_csc, window, slidewidth, njobs):
-    """
-    TODO: bug fix
-    """
-    times = range(0, binarray_csc.shape[1] - window, slidewidth)
+def _get_idmat_multi(times, binarray_csc, window, njobs):
     worker = partial(
         _get_nonzero_indices,
         indices=binarray_csc.indices,
         indptr=binarray_csc.indptr,
         span=window
     )
+    worker.__name__ = _get_nonzero_indices.__name__
     args = [{
         "idx": idx,
         "col": col
@@ -435,25 +420,60 @@ def _get_idmat_multi(binarray_csc, window, slidewidth, njobs):
     idmat = np.zeros((binarray_csc.shape[0], len(times)))
     for idx, indices in results:
         idmat[indices, idx] = 1
-    return idmat, times
+    return idmat
+
+def _eval_simvec_lsh(idx1, t1, len_times, indices, times, binarray_csc, window, a):
+    simvec = np.zeros(len_times)
+    m1 = binarray_csc[:, t1:(t1+window)].toarray().astype(DBL)
+    for idx2, t2 in zip(indices, times):
+        m2 = binarray_csc[:, t2:(t2+window)].toarray().astype(DBL)
+        dp_max, _, _, _ = clocal_exp_editsim_withflip(m1, m2, a)
+        simvec[idx2] = dp_max
+    return (simvec, idx1)
 
 def _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
                          DBL_C a = 0.01, njobs=12):
-    idmat, times = _get_idmat_multi(binarray_csc, window, slidewidth, njobs)
+    times = range(0, binarray_csc.shape[1] - window, slidewidth)
+    len_times = len(times)
+    idmat = _get_idmat_multi(times, binarray_csc, window, njobs)
     sigmat = generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, idmat, njobs)
     bucket_list = generate_bucket_list_single(numhash, numband, bandwidth, sigmat)
-    candidate_pairs = set()
+    indices_list = []
+    times_list = []
     for idx1, t1 in enumerate(times):
-        indices = find_similar(numhash, numband, bandwidth, sigmat, bucket_list, idx1)
-        for idx2 in indices:
-            t2 = times[idx2]
-            candidate_pairs.add((idx1, idx2, t1, t2))
-    simmat_lil = lil_matrix((len(times), len(times)))
-    for idx1, idx2, t1, t2 in candidate_pairs:
-        dp_max, _, _, _ = clocal_exp_editsim_withflip(binarray_csc[:, t1:(t1+window)].toarray().astype(DBL),
-                                                                        binarray_csc[:, t1:(t1+window)].toarray().astype(DBL), a)
-        simmat_lil[idx1, idx2] = dp_max
-    return simmat_lil, times
+        indices_list.append(
+            find_similar(numhash, numband, bandwidth, sigmat, bucket_list, idx1)
+        )
+        times_list.append(
+            [times[idx2] for idx2 in indices_list[-1]]
+        )
+    worker = partial(
+        _eval_simvec_lsh,
+        binarray_csc = binarray_csc,
+        len_times = len_times,
+        window = window,
+        a = a
+    )
+    worker.__name__ = _eval_simvec_lsh.__name__
+    args = [{
+        "idx1": idx1,
+        "t1": t1,
+        "indices": indices,
+        "times": times,
+        "binarray_csc": binarray_csc,
+        "window": window,
+        "a": a
+    } for (idx1, t1), indices, times in zip(
+        enumerate(times),
+        indices_list,
+        times_list)
+    ]
+    results = parallel_process(args, worker, njobs, use_kwargs=True)
+    simmat_csr = csr_matrix((len_times, len_times))
+    for simvec, idx1 in results:
+        simmat_csr[idx1, :] = simvec
+
+    return simmat_csr.tocoo(), times
 
 
         
