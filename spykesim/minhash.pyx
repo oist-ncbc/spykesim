@@ -3,7 +3,7 @@ cimport cython
 import numpy as np
 cimport numpy as np
 from functools import partial
-from .pymmh3 import hash128
+from .pymmh3 import hash128, hash64
 from .parallel import parallel_process
 
 class MinHash(object):
@@ -11,6 +11,10 @@ class MinHash(object):
         self.numhash = numband * bandwidth
         self.numband = numband
         self.bandwidth = bandwidth
+    def fit(self, csc_matrix):
+        # sigmat = minhash.generate_signature_matrix_cpu_single(numhash, numband, bandwidth, self.b.toarray())
+        pass
+
 
 
 def minhash(words, seed=0):
@@ -24,49 +28,49 @@ def minhash(words, seed=0):
     return minhash_word
 
 
-def generate_signature_matrix(minhash, data, njobs=-1):
+def generate_signature_matrix(minhash, csc_mat, njobs=-1):
     if njobs == 1:
         return generate_signature_matrix_cpu_single(
-            minhash.numhash, minhash.numband, minhash.bandwidth, data)
+            minhash.numhash, minhash.numband, minhash.bandwidth, csc_mat.astype(np.uint32))
     else:
         return generate_signature_matrix_cpu_multi(
-            minhash.numhash, minhash.numband, minhash.bandwidth, data, njobs)
+            minhash.numhash, minhash.numband, minhash.bandwidth, csc_mat.astype(np.uint32), njobs)
 
 
-def generate_signature_matrix_cpu_single(numhash, numband, bandwidth, data):
-    signature_matrix = np.zeros((numhash, data.shape[1]), dtype=np.uint32)
+def generate_signature_matrix_cpu_single(numhash, numband, bandwidth, csc_mat):
+    signature_matrix = np.zeros((numhash, csc_mat.shape[1]), dtype=np.uint32)
     for row in range(numhash):
-        for col in range(data.shape[1]):
-            idsets = np.where(data[:, col] >= 1)[0]
+        for col in range(csc_mat.shape[1]):
+            idsets = csc_mat[:, col].indices
             if len(idsets) > 0:
                 signature_matrix[row, col] = minhash(idsets, seed=row)
             else:
-                signature_matrix[row, col] = hash128(3511 * col, seed=row)
+                signature_matrix[row, col] = hash64(3511 * col, seed=row)[0]
     return signature_matrix
 
-def _generate_signature_vec(numhash, numband, bandwidth, data, col):
+def _generate_signature_vec(numhash, numband, bandwidth, csc_mat, col):
     signature_vec = np.zeros(numhash, dtype=np.uint32)
-    idsets = np.where(data[:, col] >= 1)[0]
+    idsets = csc_mat[:, col].indices
     for row in range(numhash):
         if len(idsets) > 0:
             signature_vec[row] = minhash(idsets, seed=row)
         else:
-            signature_vec[row] = hash128(3511 * col, seed=row)
+            signature_vec[row] = hash64(3511 * col, seed=row)[0]
     return col, signature_vec
 
-def generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, data, njobs):
+def generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, csc_mat, njobs):
     njobs = os.cpu_count() if njobs == -1 else njobs
-    signature_matrix = np.zeros((numhash, data.shape[1]), dtype=np.uint32)
+    signature_matrix = np.zeros((numhash, csc_mat.shape[1]), dtype=np.uint32)
     worker = partial(
         _generate_signature_vec,
         numhash=numhash,
         numband=numband,
         bandwidth=bandwidth,
-        data=data,
+        csc_mat=csc_mat,
     )
     args = [{
         "col": col
-    } for col in range(data.shape[1])]
+    } for col in range(csc_mat.shape[1])]
     results = parallel_process(args, worker, njobs, use_kwargs = True)
     for col, sigvec in results:
         signature_matrix[:, col] = sigvec
@@ -94,37 +98,36 @@ def find_similar(numhash, numband, bandwidth, signature_matrix, bucket_list, col
     return candidates
 
 
-def main():
-    # Test with small data
-    mh = MinHash(20, 5)
-    size = int(1e+02)
-    data = np.random.randint(0, 1, size=size**2).reshape(size, size)
-
-    print("Signature Matrix calculation on CPU starts")
-    sm_cpu = generate_signature_matrix(mh, data, mode="cpu")
-    print("Signature Matrix calculated on CPU")
-    print(sm_cpu)
-
-    print("Signature Matrix calculation on GPU starts")
-    sm_gpu = generate_signature_matrix(mh, data, mode="gpu")
-    print("Signature Matrix calculated on GPU")
-    print(sm_gpu)
-
-    # Performance evaluation with larger data
-    import time
-    mh = MinHash(20, 5)
-    size = int(1e+03)
-    data = np.random.randint(0, 1, size=size**2).reshape(size, size)
-
-    print("Signature Matrix calculation on CPU starts")
-    start_time = time.time()
-    sm_cpu = generate_signature_matrix(mh, data, mode="cpu")
-    print("--- %s seconds ---" % (time.time() - start_time))
-    print("Signature Matrix calculated on CPU")
-    print(sm_cpu)
-
-
-
-if __name__ == "__main__":
-    # execute only if run as a script
+#def main():
+#    # Test with small csc_mat
+#    mh = MinHash(20, 5)
+#    size = int(1e+02)
+#    csc_mat = np.random.randint(0, 1, size=size**2).reshape(size, size)
+#
+#    print("Signature Matrix calculation on CPU starts")
+#    sm_cpu = generate_signature_matrix(mh, csc_mat, mode="cpu")
+#    print("Signature Matrix calculated on CPU")
+#    print(sm_cpu)
+#    print("Signature Matrix calculation on GPU starts")
+#    sm_gpu = generate_signature_matrix(mh, data, mode="gpu")
+#    print("Signature Matrix calculated on GPU")
+#    print(sm_gpu)
+#
+#    # Performance evaluation with larger data
+#    import time
+#    mh = MinHash(20, 5)
+#    size = int(1e+03)
+#    data = np.random.randint(0, 1, size=size**2).reshape(size, size)
+#
+#    print("Signature Matrix calculation on CPU starts")
+#    start_time = time.time()
+#    sm_cpu = generate_signature_matrix(mh, data, mode="cpu")
+#    print("--- %s seconds ---" % (time.time() - start_time))
+#    print("Signature Matrix calculated on CPU")
+#    print(sm_cpu)
+#
+#
+#
+#if __name__ == "__main__":
+#    # execute only if run as a script
     main()
