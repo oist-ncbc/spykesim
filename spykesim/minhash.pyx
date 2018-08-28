@@ -13,13 +13,6 @@ class MinHash(object):
         self.bandwidth = bandwidth
 
 
-def hash_fn(key, seed=0):
-    a = 63689
-    b = 378551
-    return (a * b * (key + seed + 1)) & 0x7FFFFFFF
-
-
-
 def minhash(words, seed=0):
     current_min = np.inf
     minhash_word = None
@@ -31,15 +24,13 @@ def minhash(words, seed=0):
     return minhash_word
 
 
-def generate_signature_matrix(minhash, data, mode="cpu", njobs=-1):
-    if mode == "cpu" and njobs == 1:
+def generate_signature_matrix(minhash, data, njobs=-1):
+    if njobs == 1:
         return generate_signature_matrix_cpu_single(
             minhash.numhash, minhash.numband, minhash.bandwidth, data)
-    elif mode == "cpu":
+    else:
         return generate_signature_matrix_cpu_multi(
             minhash.numhash, minhash.numband, minhash.bandwidth, data, njobs)
-    else:
-        raise RuntimeError('Option must be eather cpu')
 
 
 def generate_signature_matrix_cpu_single(numhash, numband, bandwidth, data):
@@ -50,7 +41,7 @@ def generate_signature_matrix_cpu_single(numhash, numband, bandwidth, data):
             if len(idsets) > 0:
                 signature_matrix[row, col] = minhash(idsets, seed=row)
             else:
-                signature_matrix[row, col] = hash_fn(3511 * col, seed=row)
+                signature_matrix[row, col] = hash128(3511 * col, seed=row)
     return signature_matrix
 
 def _generate_signature_vec(numhash, numband, bandwidth, data, col):
@@ -60,7 +51,7 @@ def _generate_signature_vec(numhash, numband, bandwidth, data, col):
         if len(idsets) > 0:
             signature_vec[row] = minhash(idsets, seed=row)
         else:
-            signature_vec[row] = hash_fn(3511 * col, seed=row)
+            signature_vec[row] = hash128(3511 * col, seed=row)
     return col, signature_vec
 
 def generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, data, njobs):
