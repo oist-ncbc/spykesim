@@ -11,10 +11,21 @@ class MinHash(object):
         self.numhash = numband * bandwidth
         self.numband = numband
         self.bandwidth = bandwidth
-    def fit(self, csc_matrix):
-        # sigmat = minhash.generate_signature_matrix_cpu_single(numhash, numband, bandwidth, self.b.toarray())
-        pass
-
+    def fit(self, csc_matrix, njobs=os.cpu_count()):
+        self.signature_matrix = generate_signature_matrix(self, csc_matrix, njobs)
+        self.bucket_list = generate_bucket_list(self, self.signature_matrix, njobs)
+    def predict(self, col):
+        """
+        This function returns indices whose corresponding colomn vectors are similar in the sense of Jaccard similarity. 
+        """
+        candidates = set()
+        for idx, band in enumerate(range(0, self.numhash, self.bandwidth)):
+            hash_ = hash128(
+                self.signature_matrix[band:(band+self.bandwidth), col], band
+            )
+            for item in self.bucket_list[idx][hash_]:
+                candidates.add(item)
+        return candidates
 
 
 def minhash(words, seed=0):
@@ -68,6 +79,7 @@ def generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, csc_mat, nj
         bandwidth=bandwidth,
         csc_mat=csc_mat,
     )
+    worker.__name__ = "generate_signature_matrix_cpu_multi"
     args = [{
         "col": col
     } for col in range(csc_mat.shape[1])]
@@ -75,6 +87,15 @@ def generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, csc_mat, nj
     for col, sigvec in results:
         signature_matrix[:, col] = sigvec
     return signature_matrix
+
+def generate_bucket_list(minhash, signature_matrix, njobs):
+    """ multiprocessing version is not implemented yet """
+    if njobs == 1:
+        return generate_bucket_list_single(
+            minhash.numhash, minhash.numband, minhash.bandwidth, signature_matrix)
+    else:
+        return generate_bucket_list_single(
+            minhash.numhash, minhash.numband, minhash.bandwidth, signature_matrix)
 
 def generate_bucket_list_single(numhash, numband, bandwidth, signature_matrix):
     bucket_list = []
