@@ -8,8 +8,62 @@ import ctypes
 from functools import partial
 import os
 from .parallel import parallel_process
-from .minhash import generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar
+from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar
 from scipy.sparse import lil_matrix, csr_matrix
+
+
+class EditSim(object):
+    def __init__(self, sim_type="exp", alpha=0.1, reverse=True):
+        self.sim_type = sim_type
+        self.alpha = alpha
+        self.reverse = reverse
+        if sim_type=="exp" and reverse:
+            _sim = partial(
+                clocal_exp_editsim_withflip,
+                a=alpha
+            )
+            _sim.__name__ = "editsim_expgap"
+            self._sim = _sim
+            _sim_bp = partial(
+                clocal_exp_editsim_withbp_withflip,
+                a=alpha
+            )
+            _sim_bp.__name__ = "editsim_expgap_withbp"
+            self._sim_bp = _sim_bp
+        elif sim_type=="exp" and not reverse:
+            raise NotImplementedError()
+        elif sim_type=="linear" and reverse:
+            raise NotImplementedError()
+        elif sim_type=="linear" and not reverse:
+            raise NotImplementedError()
+        else:
+            raise AttributeError("The option is not supported.")
+
+    def sim(self, csc_mat1, csc_mat2, with_bp=False):
+        if with_bp:
+            return self._sim_bp(csc_mat1, csc_mat2)
+        else:
+            return self._sim(csc_mat1, csc_mat2)
+
+    def simmat(self, binarray_csc, window, slide,
+               minhash=True, numband=5, bandwidth=10, njobs=os.cpu_count()):
+        # TODO: add automatic numband-bandwidth setting feature
+        if minhash:
+            times = None
+            numhash = numband * bandwidth
+            return _eval_simmat_minhash(
+                numhash, numband, bandwidth, binarray_csc, window, slide, self.alpha, njobs)
+        else:
+            nneuron, duration = binarray_csc.shape
+            times = np.arange(0, duration-window, slide)
+            return _eval_simmat(times, binarray_csc, window, slide, minhash, self.alpha)
+
+            
+
+        
+
+
+
 
 
 DBL = np.double
@@ -469,11 +523,11 @@ def _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, INT_C window
         times_list)
     ]
     results = parallel_process(args, worker, njobs, use_kwargs=True)
-    simmat_csr = csr_matrix((len_times, len_times))
+    simmat_lil = lil_matrix((len_times, len_times))
     for simvec, idx1 in results:
-        simmat_csr[idx1, :] = simvec
+        simmat_lil[idx1, :] = simvec
 
-    return simmat_csr.tocoo(), times
+    return simmat_lil.tocoo(), times
 
 
         
