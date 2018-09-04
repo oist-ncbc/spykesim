@@ -32,7 +32,11 @@ setup(
     Extension("minhash",
               ["minhash.pyx"],
               extra_compile_args = ["-O0"],
-              )
+              ),
+    Extension("pymmh3",
+              ["pymmh3.pyx"],
+              extra_compile_args = ["-O0"],
+              ),
   ]
 )
 
