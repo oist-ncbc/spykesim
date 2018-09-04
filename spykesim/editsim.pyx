@@ -464,7 +464,7 @@ def _get_idmat_multi(times, binarray_csc, window, njobs):
         "col": col
     } for idx, col in enumerate(times)] 
     results = parallel_process(args, worker, njobs, use_kwargs=True)
-    idmat = np.empty((binarray_csc.shape[0], len(times)))
+    idmat = np.zeros((binarray_csc.shape[0], len(times)))
     for idx, indices in results:
         idmat[indices, idx] = 1
     return csc_matrix(idmat)
@@ -488,12 +488,14 @@ def _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, INT_C window
     indices_list = []
     times_list = []
     for idx1, t1 in enumerate(times):
-        indices_list.append(
-            find_similar(numhash, numband, bandwidth, sigmat, bucket_list, idx1)
-        )
-        times_list.append(
-            [times[idx2] for idx2 in indices_list[-1]]
-        )
+        indices = find_similar(numhash, numband, bandwidth, sigmat, bucket_list, idx1)
+        indices_list.append(indices)
+        times_list.append([times[idx2] for idx2 in indices])
+    count = 0
+    for times in times_list:
+        for t in times:
+            count += 1
+    print("Reduce Rate: {}".format(count / (len_times ** 2)))
     worker = partial(
         _eval_simvec_lsh,
         binarray_csc = binarray_csc,
