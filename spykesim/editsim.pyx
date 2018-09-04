@@ -9,7 +9,7 @@ from functools import partial
 import os
 from .parallel import parallel_process
 from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar
-from scipy.sparse import lil_matrix, csr_matrix
+from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 
 
 class EditSim(object):
@@ -57,13 +57,6 @@ class EditSim(object):
             nneuron, duration = binarray_csc.shape
             times = np.arange(0, duration-window, slide)
             return _eval_simmat(times, binarray_csc, window, slide, minhash, self.alpha)
-
-            
-
-        
-
-
-
 
 
 DBL = np.double
@@ -471,10 +464,10 @@ def _get_idmat_multi(times, binarray_csc, window, njobs):
         "col": col
     } for idx, col in enumerate(times)] 
     results = parallel_process(args, worker, njobs, use_kwargs=True)
-    idmat = np.zeros((binarray_csc.shape[0], len(times)))
+    idmat = np.empty((binarray_csc.shape[0], len(times)))
     for idx, indices in results:
         idmat[indices, idx] = 1
-    return idmat
+    return csc_matrix(idmat)
 
 def _eval_simvec_lsh(idx1, t1, len_times, indices, times, binarray_csc, window, a):
     simvec = np.zeros(len_times)
