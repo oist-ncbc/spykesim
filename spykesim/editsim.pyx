@@ -223,6 +223,7 @@ def clocal_exp_editsim(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):
             match = 0
             for row in range(nneuron):
                 match += mat1[row, col1] * mat2[row, col2]            
+            match = -10 if match == 0 else match
             # For Down
             # Comparing options: newly extend a gap or extend the exsinting gap
             dirpair = pairmax2(
@@ -287,6 +288,7 @@ cpdef clocal_exp_editsim_withbp(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.
             match = 0
             for row in range(nneuron):
                 match += mat1[row, col1] * mat2[row, col2]            
+            match = -10 if match == 0 else match
             # For Down
             # Comparing options: newly extend a gap or extend the exsinting gap
             dirpair = pairmax2(
@@ -375,6 +377,92 @@ def clocal_exp_editsim_align(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y, DBL
             alignment2 = np.c_[mat2[:, col - 1], alignment2]
             col = col - 1
     return alignment1[:, :-1], alignment2[:, :-1]
+
+
+def clocal_exp_editsim_align_alt(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):
+    cdef INT_C roww, ncol, nneuron
+    cdef INT_C col1, col2, row, col, i
+    cdef DBL_C [:, :] mat2
+    if flip:
+        mat2 = mat2_[:, ::-1]
+    else:
+        mat2 = mat2_
+    nneuron = mat1.shape[0]
+    row = dp_max_x
+    col = dp_max_y
+    # The first column is inserted just to avoid initialization error that may occur on concatination.
+    cdef np.ndarray[DBL_C, ndim=2] alignment1 = np.zeros((mat1.shape[0], 1), dtype = DBL)
+    cdef np.ndarray[DBL_C, ndim=2] alignment2 = np.zeros((mat1.shape[0], 1), dtype = DBL)
+    cdef np.ndarray[DBL_C, ndim=2] zerovec = np.zeros(mat1.shape[0], dtype = DBL) # which is corresponding to the null character.
+    cdef np.ndarray[DBL_C, ndim=1] match = np.zeros(mat1.shape[0], dtype = DBL)
+    while True:
+        if bp[row, col] == -1:
+            # Eather of the strings tracing terminated
+            break
+        elif bp[row, col] == 3:
+            for i in range(nneuron):
+                match[i] = mat1[i, row] * mat2[i, col]            
+            alignment1 = np.c_[match, alignment1]
+            alignment2 = np.c_[match, alignment2]
+            row -= 1
+            col -= 1
+        elif bp[row, col] == 2:
+            alignment2 = np.c_[zerovec, alignment2]
+            col -= 1
+        elif bp[row, col] == 1:
+            alignment1 = np.c_[zerovec, alignment1]
+            row -= 1
+        elif bp[row, col] == 0:
+            break
+        while row > 1:
+            alignment1 = np.c_[zerovec, alignment1]
+            row = row - 1
+        while col > 1:
+            alignment2 = np.c_[zerovec, alignment2]
+            col = col - 1
+    return alignment1[:, :-1], alignment2[:, :-1]
+
+
+def eval_shrinkage(INT_C [:, :] bp, INT_C dp_max_x, INT_C dp_max_y, bint flip = False):
+    cdef INT_C row = dp_max_x
+    cdef INT_C col = dp_max_y
+    while True:
+        if bp[row, col] == -1:
+            # Eather of the strings tracing terminated
+            break
+        elif bp[row, col] == 3:
+            row -= 1
+            col -= 1
+        elif bp[row, col] == 2:
+            col -= 1
+        elif bp[row, col] == 1:
+            row -= 1
+        elif bp[row, col] == 0:
+            break
+    if flip:
+        return -(dp_max_x - row) / (dp_max_y - col)
+    else:
+        return (dp_max_x - row) / (dp_max_y - col)
+
+def eval_simmat(binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
+                bint lsh=False, INT_C njobs = -1,
+                numband = 5, bandwidth = 4,
+                DBL_C a = 0.01):
+    if lsh:
+        times = None
+        numhash = numband * bandwidth
+        return _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, window, slidewidth,
+                                    a, njobs)
+    else:
+        nneuron, duration = binarray_csc.shape
+        times = np.arange(0, duration-window, slidewidth)
+        return _eval_simmat(times, binarray_csc, window, slidewidth, lsh, a)
+
+def _eval_simvec(idx1, t1, times, binarray_csc, window, a):
+    simvec = np.zeros(len(times))
+    m1 = binarray_csc[:, t1:(t1+window)].toarray().astype(DBL)
+    for idx2, t2 in enumerate(times):
+        m2 = binarray_csc[:, t2:(t2+window)].toarray().astype(DBL)
 
 def eval_shrinkage(INT_C [:, :] bp, INT_C dp_max_x, INT_C dp_max_y, bint flip = False):
     cdef INT_C row = dp_max_x
