@@ -9,8 +9,10 @@ from functools import partial
 import os
 from .parallel import parallel_process
 from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar
-from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
-
+from scipy.sparse import lil_matrix, csr_matrix, csc_matrix, coo_matrix
+from pathlib import Path
+import h5py
+import datetime
 
 class EditSim(object):
     def __init__(self, sim_type="exp", alpha=0.1, reverse=True):
@@ -45,20 +47,61 @@ class EditSim(object):
         else:
             return self._sim(csc_mat1, csc_mat2)
 
-    def simmat(self, binarray_csc, window, slide,
+    def gensimmat(self, binarray_csc, window, slide,
                minhash=True, numband=5, bandwidth=10, njobs=os.cpu_count()):
         # TODO: add automatic numband-bandwidth setting feature
+        self.binarray_csc = binarray_csc
+        self.window = window
+        self.slide = slide
+        self.minhash = minhash
         if minhash:
+            self.numband = numband
+            self.bandwidth = bandwidth
             times = None
             numhash = numband * bandwidth
-            return _eval_simmat_minhash(
+            self.simmat, self.times =  _eval_simmat_minhash(
                 numhash, numband, bandwidth, binarray_csc, window, slide, self.alpha, njobs)
         else:
             nneuron, duration = binarray_csc.shape
             times = np.arange(0, duration-window, slide)
-            return _eval_simmat(times, binarray_csc, window, slide, minhash, self.alpha)
+            self.simmat, self.times = _eval_simmat(times, binarray_csc, window, slide, minhash, self.alpha)
 
+    def save(self, path="."):
+        path = Path(path)
+        if not path.exists():
+            path.mkdir(parents=True)
+        d = datetime.datetime.today()
+        simmat_file = f"simmat_{self.window}_{self.slide}_{self.alpha}_{self.sim_type}.hdf5"
+        with h5py.File(path / simmat_file, "w") as wf:
+            wf.create_dataset("window", data=self.window)
+            wf.create_dataset("slide", data=self.slide)
+            wf.create_dataset("alpha", data=self.alpha)
+            wf.create_dataset("minhash", data=self.minhash)
+            if self.minhash:
+                wf.create_dataset("bandwidth", data=self.bandwidth)
+                wf.create_dataset("numband", data=self.numband)
+            wf.create_dataset("row", data=self.simmat.row)
+            wf.create_dataset("col", data=self.simmat.col)
+            wf.create_dataset("data", data=self.simmat.data)
+            wf.create_dataset("times", data=self.times)
+    
+    def load(self, hdf5_file):
+        with h5py.File(hdf5_file, 'r') as rf:
+            self.window = rf["window"].value
+            self.slide = rf["slide"].value
+            self.alpha = rf["alpha"].value
+            self.minhash = rf["minhash"].value
+            if self.minhash:
+                self.bandwidth = rf["bandwidth"].value
+                self.numband = rf["numband"].value
+            row = rf["row"].value
+            col = rf["col"].value
+            data = rf["data"].value
+            self.simmat = coo_matrix((data, (row, col)))
+            self.times = rf["times"].value
+            
 
+        
 DBL = np.double
 ctypedef np.double_t DBL_C
 INT = np.int
