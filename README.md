@@ -1,4 +1,5 @@
 # Spykesim
+![PyPI](https://img.shields.io/pypi/v/spykesim.svg)
 
 spykesim is a Python module that offers functions for measuring the similarity between two segmented multi-neuronal spiking activities.
 Extended edit similarity measurement is implemented. You can find the details in the following paper.
