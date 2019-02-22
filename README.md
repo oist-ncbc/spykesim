@@ -2,15 +2,21 @@
 
 spykesim is a Python module that offers functions for measuring the similarity between two segmented multi-neuronal spiking activities.
 Extended edit similarity measurement is implemented. You can find the details in the following paper.
-PAPERCITATION
+bioArxiv: https://www.biorxiv.org/content/early/2017/10/30/202655
+# Supported Operating Systems
+Ubuntu and MacOS.
 
 # Installation
+You can install via pip.
+```python
+pip install spykesim
+```
 
 ## Dependencies
 
-- Python (>= 3.4)
-
-## User installation
+- Python (>= 3.5)
+- Cython
+- Numpy
 
 # Tutorial 
 
