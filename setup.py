@@ -16,7 +16,7 @@ except ImportError:
     USING_CYTHON = False
 else:
     USING_CYTHON = True
-
+print("using cython: ", USING_CYTHON)
 ext = 'pyx' if USING_CYTHON else 'c'
 sources = glob('spykesim/*.%s' % (ext,))
 extensions = [
@@ -26,9 +26,10 @@ extensions = [
 for source in sources]
 cmdclass = {'build_ext': build_ext} if USING_CYTHON else {}
 
+import numpy
 setup(
     name='spykesim',
-    version='0.0.4',
+    version='0.0.9',
     description='Python module that offers functions for measuring the similarity between two segmented multi-neuronal spiking activities.',
     long_description=readme,
     author='Keita Watanabe',
@@ -37,6 +38,7 @@ setup(
     url='https://github.com/KeitaW/spikesim',
     license=license,
     ext_modules=extensions,
-    cmdclass=cmdclass
+    cmdclass=cmdclass,
+    include_dirs = [numpy.get_include()],
 )
 
