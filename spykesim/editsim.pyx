@@ -15,7 +15,36 @@ import h5py
 import datetime
 
 class EditSim(object):
+    """Compute extended-edit similarity score
+
+    Read more in the REF.
+
+    Parameters
+    ------------
+    sim_type: {"exp", "linear", "simple"}
+
+    alpha: float, default: 0.1
+        Strength of gap penalty used in "exp" and "linear"
+
+    reverse: bool
+        whether consider reverse patterns(True) or not(False)
+
+    Attributes
+    ------------
+    TODO
+
+    Examples
+    ------------
+    TODO
+
+    Notes
+    ------------
+    TODO
+
+
+    """
     def __init__(self, sim_type="exp", alpha=0.1, reverse=True):
+        # すべてのAttributesをデフォルトNoneで宣言しておいたほうが、save, load functionで気を使わなくて良くなっていいかもしれない。
         self.sim_type = sim_type
         self.alpha = alpha
         self.reverse = reverse
@@ -60,11 +89,22 @@ class EditSim(object):
             times = None
             numhash = numband * bandwidth
             self.simmat, self.times =  _eval_simmat_minhash(
-                numhash, numband, bandwidth, binarray_csc, window, slide, self.alpha, njobs)
+                self._sim, numhash, numband, bandwidth, binarray_csc, window, slide, self.alpha, njobs)
         else:
             nneuron, duration = binarray_csc.shape
             times = np.arange(0, duration-window, slide)
-            self.simmat, self.times = _eval_simmat(times, binarray_csc, window, slide, minhash, self.alpha)
+            self.simmat, self.times = _eval_simmat(
+                    self._sim, times, binarray_csc, window, slide, minhash, self.alpha)
+    def clustering(self):
+        """
+        Perform HDBSCAN clustering algorithm on the similarity matrix calculated by `gensimmat`
+
+        """
+        raise NotImplementedError()
+    def barton_sternberg(self, cluster_id):
+        raise NotImplementedError()
+    def detect_sequences(self, cluster_id):
+        raise NotImplementedError()
 
     def save(self, path="."):
         path = Path(path)
@@ -464,83 +504,6 @@ def clocal_exp_editsim_align_alt(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y,
             alignment2 = np.c_[zerovec, alignment2]
             col = col - 1
     return alignment1[:, :-1], alignment2[:, :-1]
-
-
-def eval_shrinkage(INT_C [:, :] bp, INT_C dp_max_x, INT_C dp_max_y, bint flip = False):
-    cdef INT_C row = dp_max_x
-    cdef INT_C col = dp_max_y
-    while True:
-        if bp[row, col] == -1:
-            # Eather of the strings tracing terminated
-            break
-        elif bp[row, col] == 3:
-            row -= 1
-            col -= 1
-        elif bp[row, col] == 2:
-            col -= 1
-        elif bp[row, col] == 1:
-            row -= 1
-        elif bp[row, col] == 0:
-            break
-    if flip:
-        return -(dp_max_x - row) / (dp_max_y - col)
-    else:
-        return (dp_max_x - row) / (dp_max_y - col)
-
-def eval_simmat(binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
-                bint lsh=False, INT_C njobs = -1,
-                numband = 5, bandwidth = 4,
-                DBL_C a = 0.01):
-    if lsh:
-        times = None
-        numhash = numband * bandwidth
-        return _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, window, slidewidth,
-                                    a, njobs)
-    else:
-        nneuron, duration = binarray_csc.shape
-        times = np.arange(0, duration-window, slidewidth)
-        return _eval_simmat(times, binarray_csc, window, slidewidth, lsh, a)
-
-def _eval_simvec(idx1, t1, times, binarray_csc, window, a):
-    simvec = np.zeros(len(times))
-    m1 = binarray_csc[:, t1:(t1+window)].toarray().astype(DBL)
-    for idx2, t2 in enumerate(times):
-        m2 = binarray_csc[:, t2:(t2+window)].toarray().astype(DBL)
-
-def eval_shrinkage(INT_C [:, :] bp, INT_C dp_max_x, INT_C dp_max_y, bint flip = False):
-    cdef INT_C row = dp_max_x
-    cdef INT_C col = dp_max_y
-    while True:
-        if bp[row, col] == -1:
-            # Eather of the strings tracing terminated
-            break
-        elif bp[row, col] == 3:
-            row -= 1
-            col -= 1
-        elif bp[row, col] == 2:
-            col -= 1
-        elif bp[row, col] == 1:
-            row -= 1
-        elif bp[row, col] == 0:
-            break
-    if flip:
-        return -(dp_max_x - row) / (dp_max_y - col)
-    else:
-        return (dp_max_x - row) / (dp_max_y - col)
-
-def eval_simmat(binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
-                bint lsh=False, INT_C njobs = -1,
-                numband = 5, bandwidth = 4,
-                DBL_C a = 0.01):
-    if lsh:
-        times = None
-        numhash = numband * bandwidth
-        return _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, window, slidewidth,
-                                    a, njobs)
-    else:
-        nneuron, duration = binarray_csc.shape
-        times = np.arange(0, duration-window, slidewidth)
-        return _eval_simmat(times, binarray_csc, window, slidewidth, lsh, a)
 
 def _eval_simvec(idx1, t1, times, binarray_csc, window, a):
     simvec = np.zeros(len(times))
