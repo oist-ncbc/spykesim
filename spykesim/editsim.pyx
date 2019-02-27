@@ -505,26 +505,28 @@ def clocal_exp_editsim_align_alt(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y,
             col = col - 1
     return alignment1[:, :-1], alignment2[:, :-1]
 
-def _eval_simvec(idx1, t1, times, binarray_csc, window, a):
+def _eval_simvec(_sim, idx1, t1, times, binarray_csc, window, a):
     simvec = np.zeros(len(times))
     m1 = binarray_csc[:, t1:(t1+window)].toarray().astype(DBL)
     for idx2, t2 in enumerate(times):
         m2 = binarray_csc[:, t2:(t2+window)].toarray().astype(DBL)
-        dp_max, _, _, _ = clocal_exp_editsim_withflip(m1, m2, a)
+        dp_max, _, _, _ = _sim(m1, m2)
         simvec[idx2] = dp_max
     return (simvec, idx1)
 
-def _eval_simmat(times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, DBL_C a = 0.01, njobs = -1):
+def _eval_simmat(_sim, times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, DBL_C a = 0.01, njobs = -1):
     njobs = os.cpu_count() if njobs == -1 else njobs
     simmat = np.zeros((len(times), len(times)))
     worker = partial(
         _eval_simvec,
+        _sim = _sim,
         times = times,
         binarray_csc = binarray_csc,
         window = window,
         a = a
     )
     worker.__name__ = _eval_simvec.__name__
+    print("times: ", times)
     args = [{
         "idx1": idx1,
         "t1": t1,
@@ -533,7 +535,7 @@ def _eval_simmat(times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200
         "window": window,
         "a": a
     } for idx1, t1 in enumerate(times)]
-    results = parallel_process(args, _eval_simvec, njobs, use_kwargs=True)
+    results = parallel_process(args, worker, njobs, use_kwargs=True)
     for simvec, idx1 in results:
         simmat[idx1, :] = simvec
 
@@ -563,16 +565,16 @@ def _get_idmat_multi(times, binarray_csc, window, njobs):
         idmat[indices, idx] = 1
     return csc_matrix(idmat)
 
-def _eval_simvec_lsh(idx1, t1, len_times, indices, times, binarray_csc, window, a):
+def _eval_simvec_lsh(_sim, idx1, t1, len_times, indices, times, binarray_csc, window, a):
     simvec = np.zeros(len_times)
     m1 = binarray_csc[:, t1:(t1+window)].toarray().astype(DBL)
     for idx2, t2 in zip(indices, times):
         m2 = binarray_csc[:, t2:(t2+window)].toarray().astype(DBL)
-        dp_max, _, _, _ = clocal_exp_editsim_withflip(m1, m2, a)
+        dp_max, _, _, _ = _sim(m1, m2)
         simvec[idx2] = dp_max
     return (simvec, idx1)
 
-def _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
+def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
                          DBL_C a = 0.01, njobs=12):
     times = range(0, binarray_csc.shape[1] - window, slidewidth)
     len_times = len(times)
@@ -592,6 +594,7 @@ def _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, INT_C window
     print("Reduce Rate: {}".format(count / (len_times ** 2)))
     worker = partial(
         _eval_simvec_lsh,
+        _sim = _sim,
         binarray_csc = binarray_csc,
         len_times = len_times,
         window = window,
