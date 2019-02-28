@@ -21,6 +21,7 @@ pip install spykesim
 - Numpy
 - tqdm
 
+Cython and Numpy needs to be preinstalled as these will be used in the installation process.
 # Tutorial 
 You can find a tutorial in [doc](https://github.com/KeitaW/spykesim/blob/master/docs/tutorial.ipynb).
 
