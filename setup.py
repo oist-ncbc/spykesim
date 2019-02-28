@@ -34,7 +34,7 @@ setup(
     long_description=readme,
     author='Keita Watanabe',
     author_email='keitaw09@gmail.com',
-    install_requires=['numpy', 'cython'],
+    install_requires=['cython', 'tqdm'],
     url='https://github.com/KeitaW/spikesim',
     license=license,
     ext_modules=extensions,
