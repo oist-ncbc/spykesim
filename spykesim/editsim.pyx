@@ -14,8 +14,38 @@ from pathlib import Path
 import h5py
 import datetime
 
-class EditSim(object):
+class FromBinMat(object):
+    """Compute extended-edit similarity values of segments of a binned-multineuronal activity data
+
+    Read more in the REF.
+
+    Parameters
+    ------------
+    sim_type: {"exp", "linear", "simple"}
+        Form of the penalization.
+
+    alpha: float, default: 0.1
+        Strength of gap penalty used in "exp" and "linear".
+
+    reverse: bool
+        Whether consider reverse patterns(True) or not(False)
+
+    Attributes
+    ------------
+    TODO
+
+    Examples
+    ------------
+    TODO
+
+    Notes
+    ------------
+    TODO
+
+
+    """
     def __init__(self, sim_type="exp", alpha=0.1, reverse=True):
+        # すべてのAttributesをデフォルトNoneで宣言しておいたほうが、save, load functionで気を使わなくて良くなっていいかもしれない。
         self.sim_type = sim_type
         self.alpha = alpha
         self.reverse = reverse
@@ -60,11 +90,22 @@ class EditSim(object):
             times = None
             numhash = numband * bandwidth
             self.simmat, self.times =  _eval_simmat_minhash(
-                numhash, numband, bandwidth, binarray_csc, window, slide, self.alpha, njobs)
+                self._sim, numhash, numband, bandwidth, binarray_csc, window, slide, njobs)
         else:
             nneuron, duration = binarray_csc.shape
             times = np.arange(0, duration-window, slide)
-            self.simmat, self.times = _eval_simmat(times, binarray_csc, window, slide, minhash, self.alpha)
+            self.simmat, self.times = _eval_simmat(
+                    self._sim, times, binarray_csc, window, slide, minhash)
+    def clustering(self):
+        """
+        Perform HDBSCAN clustering algorithm on the similarity matrix calculated by `gensimmat`
+
+        """
+        raise NotImplementedError()
+    def barton_sternberg(self, cluster_id):
+        raise NotImplementedError()
+    def detect_sequences(self, cluster_id):
+        raise NotImplementedError()
 
     def save(self, path="."):
         path = Path(path)
@@ -465,115 +506,37 @@ def clocal_exp_editsim_align_alt(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y,
             col = col - 1
     return alignment1[:, :-1], alignment2[:, :-1]
 
-
-def eval_shrinkage(INT_C [:, :] bp, INT_C dp_max_x, INT_C dp_max_y, bint flip = False):
-    cdef INT_C row = dp_max_x
-    cdef INT_C col = dp_max_y
-    while True:
-        if bp[row, col] == -1:
-            # Eather of the strings tracing terminated
-            break
-        elif bp[row, col] == 3:
-            row -= 1
-            col -= 1
-        elif bp[row, col] == 2:
-            col -= 1
-        elif bp[row, col] == 1:
-            row -= 1
-        elif bp[row, col] == 0:
-            break
-    if flip:
-        return -(dp_max_x - row) / (dp_max_y - col)
-    else:
-        return (dp_max_x - row) / (dp_max_y - col)
-
-def eval_simmat(binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
-                bint lsh=False, INT_C njobs = -1,
-                numband = 5, bandwidth = 4,
-                DBL_C a = 0.01):
-    if lsh:
-        times = None
-        numhash = numband * bandwidth
-        return _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, window, slidewidth,
-                                    a, njobs)
-    else:
-        nneuron, duration = binarray_csc.shape
-        times = np.arange(0, duration-window, slidewidth)
-        return _eval_simmat(times, binarray_csc, window, slidewidth, lsh, a)
-
-def _eval_simvec(idx1, t1, times, binarray_csc, window, a):
+def _eval_simvec(_sim, idx1, t1, times, binarray_csc, window):
     simvec = np.zeros(len(times))
     m1 = binarray_csc[:, t1:(t1+window)].toarray().astype(DBL)
     for idx2, t2 in enumerate(times):
         m2 = binarray_csc[:, t2:(t2+window)].toarray().astype(DBL)
-
-def eval_shrinkage(INT_C [:, :] bp, INT_C dp_max_x, INT_C dp_max_y, bint flip = False):
-    cdef INT_C row = dp_max_x
-    cdef INT_C col = dp_max_y
-    while True:
-        if bp[row, col] == -1:
-            # Eather of the strings tracing terminated
-            break
-        elif bp[row, col] == 3:
-            row -= 1
-            col -= 1
-        elif bp[row, col] == 2:
-            col -= 1
-        elif bp[row, col] == 1:
-            row -= 1
-        elif bp[row, col] == 0:
-            break
-    if flip:
-        return -(dp_max_x - row) / (dp_max_y - col)
-    else:
-        return (dp_max_x - row) / (dp_max_y - col)
-
-def eval_simmat(binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
-                bint lsh=False, INT_C njobs = -1,
-                numband = 5, bandwidth = 4,
-                DBL_C a = 0.01):
-    if lsh:
-        times = None
-        numhash = numband * bandwidth
-        return _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, window, slidewidth,
-                                    a, njobs)
-    else:
-        nneuron, duration = binarray_csc.shape
-        times = np.arange(0, duration-window, slidewidth)
-        return _eval_simmat(times, binarray_csc, window, slidewidth, lsh, a)
-
-def _eval_simvec(idx1, t1, times, binarray_csc, window, a):
-    simvec = np.zeros(len(times))
-    m1 = binarray_csc[:, t1:(t1+window)].toarray().astype(DBL)
-    for idx2, t2 in enumerate(times):
-        m2 = binarray_csc[:, t2:(t2+window)].toarray().astype(DBL)
-        dp_max, _, _, _ = clocal_exp_editsim_withflip(m1, m2, a)
+        dp_max, _, _, _ = _sim(m1, m2)
         simvec[idx2] = dp_max
     return (simvec, idx1)
 
-def _eval_simmat(times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, DBL_C a = 0.01, njobs = -1):
+def _eval_simmat(_sim, times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, njobs = -1):
     njobs = os.cpu_count() if njobs == -1 else njobs
     simmat = np.zeros((len(times), len(times)))
     worker = partial(
         _eval_simvec,
+        _sim = _sim,
         times = times,
         binarray_csc = binarray_csc,
-        window = window,
-        a = a
+        window = window
     )
     worker.__name__ = _eval_simvec.__name__
+    print("times: ", times)
     args = [{
         "idx1": idx1,
         "t1": t1,
         "times": times,
         "binarray_csc": binarray_csc,
         "window": window,
-        "a": a
     } for idx1, t1 in enumerate(times)]
-    results = parallel_process(args, _eval_simvec, njobs, use_kwargs=True)
+    results = parallel_process(args, worker, njobs, use_kwargs=True)
     for simvec, idx1 in results:
         simmat[idx1, :] = simvec
-
     return simmat, times
 
 def _get_nonzero_indices(idx, indices, indptr, col, span):
@@ -600,17 +563,16 @@ def _get_idmat_multi(times, binarray_csc, window, njobs):
         idmat[indices, idx] = 1
     return csc_matrix(idmat)
 
-def _eval_simvec_lsh(idx1, t1, len_times, indices, times, binarray_csc, window, a):
+def _eval_simvec_lsh(_sim, idx1, t1, len_times, indices, times, binarray_csc, window):
     simvec = np.zeros(len_times)
     m1 = binarray_csc[:, t1:(t1+window)].toarray().astype(DBL)
     for idx2, t2 in zip(indices, times):
         m2 = binarray_csc[:, t2:(t2+window)].toarray().astype(DBL)
-        dp_max, _, _, _ = clocal_exp_editsim_withflip(m1, m2, a)
+        dp_max, _, _, _ = _sim(m1, m2)
         simvec[idx2] = dp_max
     return (simvec, idx1)
 
-def _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, INT_C window = 200, INT_C slidewidth = 200,
-                         DBL_C a = 0.01, njobs=12):
+def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C window = 200, INT_C slidewidth = 200, njobs=12):
     times = range(0, binarray_csc.shape[1] - window, slidewidth)
     len_times = len(times)
     idmat = _get_idmat_multi(times, binarray_csc, window, njobs)
@@ -629,10 +591,10 @@ def _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, INT_C window
     print("Reduce Rate: {}".format(count / (len_times ** 2)))
     worker = partial(
         _eval_simvec_lsh,
+        _sim = _sim,
         binarray_csc = binarray_csc,
         len_times = len_times,
         window = window,
-        a = a
     )
     worker.__name__ = _eval_simvec_lsh.__name__
     args = [{
@@ -642,7 +604,6 @@ def _eval_simmat_minhash(numhash, numband, bandwidth, binarray_csc, INT_C window
         "times": times,
         "binarray_csc": binarray_csc,
         "window": window,
-        "a": a
     } for (idx1, t1), indices, times in zip(
         enumerate(times),
         indices_list,
