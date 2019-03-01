@@ -1,8 +1,9 @@
 version: 2.1
-orbs:
-    hello: circleci/hello-build@0.0.7 # uses the circleci/buildpack-deps Docker image
-
 workflows:
-    "Hello Workflow":
+    "Test spykesim":
         jobs:
-          - hello/hello-build
+            build:
+                docker:
+                    - image: circleci/python:3.6
+            steps:
+                - run: echo "test"
