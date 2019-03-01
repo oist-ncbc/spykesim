@@ -4,4 +4,15 @@ jobs:
         docker:
             - image: circleci/python:3.6
         steps:
-            - run: echo "test"
+            - checkout
+            - run: |
+                python3.6 -m venv venv
+                source ./venv/bin/activate
+                pwd
+                cd spykesim
+                pip install numpy cython
+                python setup.py build_ext --inplace install
+                pip install nose
+                nosetests --with-xunit --xunit-file=log/nosetests.xml
+            - store_test_results:
+                path: log
