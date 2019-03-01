@@ -30,6 +30,7 @@ python setup.py build_ext --inplace install
 - Python (>= 3.5)
 - Numpy(Needs to be preinstalled)
 - Cython(Needs to be preinstalled)
+- scipy
 - tqdm
 - joblib
 
