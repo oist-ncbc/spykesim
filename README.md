@@ -33,7 +33,7 @@ python setup.py build_ext --inplace install
 - Cython(Needs to be preinstalled)
 - scipy
 - tqdm
-- joblib
+- h5py
 
 # Tutorial 
 You can find a tutorial in [doc](https://github.com/KeitaW/spykesim/blob/master/docs/tutorial.ipynb).
