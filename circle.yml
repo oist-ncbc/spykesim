@@ -10,8 +10,8 @@ jobs:
                 python3.6 -m venv venv
                 source ./venv/bin/activate
                 pip install numpy cython h5py
+                pip install nose tqdm joblib                 
                 python setup.py build_ext --inplace install
-                pip install nose tqdm joblib 
                 python mp.py
                 mkdir log
                 nosetests --with-xunit --xunit-file=log/nosetests.xml
