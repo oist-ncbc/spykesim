@@ -22,7 +22,7 @@ or you may clone and build by yourself,
 ```bash
 git clone https://github.com/KeitaW/spykesim.git
 cd spykesim
-python setup.py --build-ext --inplace install
+python setup.py build_ext --inplace install
 ```
 
 ## Dependencies
