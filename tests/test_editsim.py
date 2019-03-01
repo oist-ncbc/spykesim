@@ -1,6 +1,7 @@
 from unittest import TestCase
 from nose.tools import ok_, eq_
-from ..spykesim.spykesim import editsim
+import spykesim
+from ..spykesim import editsim
 
 class SimmatTestCase(TestCase):
     def setUp(self):
