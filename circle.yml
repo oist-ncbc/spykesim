@@ -13,6 +13,7 @@ jobs:
                 pip install numpy cython
                 python setup.py build_ext --inplace install
                 pip install nose
+                mkdir log
                 nosetests --with-xunit --xunit-file=log/nosetests.xml
             - store_test_results:
                 path: log
