@@ -4,7 +4,6 @@ jobs:
     build:
         docker:
             - image: python:3.6
-        parallelism: 4
         steps:
             - checkout
             - run: |
@@ -12,8 +11,8 @@ jobs:
                 source ./venv/bin/activate
                 pip install numpy cython
                 python setup.py build_ext --inplace install
-                pip install nose
-                python multiprocessing.py
+                pip install nose tqdm joblib 
+                python mp.py
                 mkdir log
                 nosetests --with-xunit --xunit-file=log/nosetests.xml
             - store_test_results:
