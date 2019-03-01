@@ -1,9 +1,7 @@
 version: 2.1
-workflows:
-    "Test spykesim":
-        jobs:
-            build:
-                docker:
-                    - image: circleci/python:3.6
+    jobs:
+        build:
+            docker:
+                - image: circleci/python:3.6
             steps:
                 - run: echo "test"
