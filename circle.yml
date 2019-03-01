@@ -9,7 +9,7 @@ jobs:
             - run: |
                 pip install numpy cython h5py
                 pip install nose tqdm joblib                 
-                python setup.py build_ext --inplace install
+                python setup.py build_ext
                 python mp.py
                 mkdir log
                 nosetests --with-xunit --xunit-file=log/nosetests.xml
