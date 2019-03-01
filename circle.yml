@@ -7,8 +7,6 @@ jobs:
         steps:
             - checkout
             - run: |
-                python3.6 -m venv venv
-                source ./venv/bin/activate
                 pip install numpy cython h5py
                 pip install nose tqdm joblib                 
                 python setup.py build_ext --inplace install
