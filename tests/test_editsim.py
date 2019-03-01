@@ -1,6 +1,5 @@
 from unittest import TestCase
 from nose.tools import ok_, eq_
-import spykesim
 from ..spykesim import editsim
 
 class SimmatTestCase(TestCase):
