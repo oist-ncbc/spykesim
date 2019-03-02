@@ -12,7 +12,7 @@ This library tested on Ubuntu and MacOS.
 For Windows users: Please consider to use Ubuntu via Windows Subsystem for Linux.
 
 # Installation
-If you do not have Python3.x you may use [Anaconda](https://www.anaconda.com/distribution/).
+If you do not have Python3.x, you may use [Anaconda](https://www.anaconda.com/distribution/).
 
 [Cython](https://github.com/cython/cython) and [Numpy](https://github.com/numpy/numpy) needs to be preinstalled as these will be used in the installation process.
 
