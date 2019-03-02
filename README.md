@@ -1,27 +1,45 @@
 # Spykesim
-![PyPI](https://img.shields.io/pypi/v/spykesim.svg)
+[![PyPI](https://img.shields.io/pypi/v/spykesim.svg)](https://pypi.org/project/spykesim/0.1.0/)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+[![Build Status](https://travis-ci.org/KeitaW/spykesim.svg?branch=master)](https://travis-ci.org/KeitaW/spykesim)
 
 spykesim is a Python module that offers functions for measuring the similarity between two segmented multi-neuronal spiking activities.
 Extended edit similarity measurement is implemented. You can find the details in the following paper.
 bioArxiv: https://www.biorxiv.org/content/early/2017/10/30/202655
 # Supported Operating Systems
-Ubuntu and MacOS. For Windows users: Please consider to use Ubuntu via Windows Subsystem for Linux.
+This library tested on Ubuntu and MacOS.
+
+For Windows users: Please consider to use Ubuntu via Windows Subsystem for Linux.
 
 # Installation
-You can install via pip.
-```python
+If you do not have Python3.x, you may use [Anaconda](https://www.anaconda.com/distribution/).
+
+[Cython](https://github.com/cython/cython) and [Numpy](https://github.com/numpy/numpy) needs to be preinstalled as these will be used in the installation process.
+
+If you have not installed these packages, run the following,
+```bash
+pip install numpy cython
+```
+You can install this library via pip as well,
+```bash
 pip install spykesim
+```
+or you may clone and build by yourself,
+```bash
+git clone https://github.com/KeitaW/spykesim.git
+cd spykesim
+python setup.py build_ext --inplace install
 ```
 
 ## Dependencies
 
 - Python (>= 3.5)
-- Cython
-- Numpy
+- Numpy(Needs to be preinstalled)
+- Cython(Needs to be preinstalled)
+- scipy
 - tqdm
+- h5py
 
-Cython and Numpy needs to be preinstalled as these will be used in the installation process.
 # Tutorial 
 You can find a tutorial in [doc](https://github.com/KeitaW/spykesim/blob/master/docs/tutorial.ipynb).
 
