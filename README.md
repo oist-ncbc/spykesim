@@ -8,10 +8,14 @@ Extended edit similarity measurement is implemented. You can find the details in
 bioArxiv: https://www.biorxiv.org/content/early/2017/10/30/202655
 # Supported Operating Systems
 This library tested on Ubuntu and MacOS.
+
 For Windows users: Please consider to use Ubuntu via Windows Subsystem for Linux.
 
 # Installation
-Cython and Numpy needs to be preinstalled as these will be used in the installation process.
+If you do not have Python3.x you may use [Anaconda](https://www.anaconda.com/distribution/).
+
+[Cython](https://github.com/cython/cython) and [Numpy](https://github.com/numpy/numpy) needs to be preinstalled as these will be used in the installation process.
+
 If you have not installed these packages, run the following,
 ```bash
 pip install numpy cython
