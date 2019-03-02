@@ -7,7 +7,8 @@ spykesim is a Python module that offers functions for measuring the similarity b
 Extended edit similarity measurement is implemented. You can find the details in the following paper.
 bioArxiv: https://www.biorxiv.org/content/early/2017/10/30/202655
 # Supported Operating Systems
-Ubuntu and MacOS. For Windows users: Please consider to use Ubuntu via Windows Subsystem for Linux.
+This library tested on Ubuntu and MacOS.
+For Windows users: Please consider to use Ubuntu via Windows Subsystem for Linux.
 
 # Installation
 Cython and Numpy needs to be preinstalled as these will be used in the installation process.
