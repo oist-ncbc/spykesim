@@ -5,6 +5,10 @@ from scipy import sparse
 from nose.tools import ok_, eq_
 from ..spykesim import editsim
 
+def genpoisson_spiketrain(rate, dt, duration):
+    offset = duration
+    events = np.cumsum(np.random.exponential(scale = 1 / rate, size = int(duration*rate + offset)))
+    return np.round(events[np.logical_and(0 < events, events < duration)], -int(np.log10(dt)))
 def genpoisson_spiketrains(nneurons, rate, dt, duration):
     spike_timings = np.array([], dtype = np.float)
     spike_neurons = np.array([], dtype = np.int)

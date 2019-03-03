@@ -16,15 +16,15 @@ If you do not have Python3.x, you may use [Anaconda](https://www.anaconda.com/di
 
 [Cython](https://github.com/cython/cython) and [Numpy](https://github.com/numpy/numpy) needs to be preinstalled as these will be used in the installation process.
 
-If you have not installed these packages, run the following,
+If you have not installed these packages, run the following:
 ```bash
 pip install numpy cython
 ```
-You can install this library via pip as well,
+You can install this library via pip as well:
 ```bash
 pip install spykesim
 ```
-or you may clone and build by yourself,
+or you may clone and build by yourself:
 ```bash
 git clone https://github.com/KeitaW/spykesim.git
 cd spykesim
