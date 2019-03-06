@@ -583,7 +583,6 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
         # indices = find_similar(numhash, numband, bandwidth, sigmat, bucket_list, idx1)
         indices_list.union(indices)
     times_list = [times[idx2] for idx2 in indices]
-    count = 0
     print("Reduce Rate: {}".format(1 - len(times_list) / (len_times ** 2)))
     worker = partial(
         _eval_simvec_lsh,
