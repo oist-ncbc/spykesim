@@ -6,7 +6,6 @@ from libc.math cimport log
 import multiprocessing
 import ctypes
 from functools import partial
-import sys
 import os
 from .parallel import parallel_process
 from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar
@@ -14,6 +13,17 @@ from scipy.sparse import lil_matrix, csr_matrix, csc_matrix, coo_matrix
 from pathlib import Path
 import h5py
 import datetime
+from logging import StreamHandler, Formatter, INFO, getLogger
+
+def init_logger():
+    handler = StreamHandler()
+    handler.setLevel(INFO)
+    handler.setFormatter(Formatter("[%(asctime)s] [%(threadName)s] %(message)s"))
+    logger = getLogger()
+    if (logger.hasHandlers()):
+        logger.handlers.clear()    
+    logger.addHandler(handler)
+    logger.setLevel(INFO)
 
 class FromBinMat(object):
     """Compute extended-edit similarity values of segments of a binned-multineuronal activity data
@@ -85,13 +95,16 @@ class FromBinMat(object):
         self.window = window
         self.slide = slide
         self.minhash = minhash
+        init_logger()
+        getLogger().info("Execution of a function gensimmat starts")
         if minhash:
             self.numband = numband
             self.bandwidth = bandwidth
             times = None
             numhash = numband * bandwidth
-            self.simmat, self.times =  _eval_simmat_minhash(
+            self.simmat, self.times, self.reduce_rate =  _eval_simmat_minhash(
                 self._sim, numhash, numband, bandwidth, binarray_csc, window, slide, njobs)
+            getLogger().info(f"Reduce Rate: {self.reduce_rate}")
         else:
             nneuron, duration = binarray_csc.shape
             times = np.arange(0, duration-window, slide)
@@ -588,7 +601,7 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
     for times in times_list:
         for t in times:
             count += 1
-    sys.stderr.write("Reduce Rate: {}".format(1 - count / (len_times ** 2)))
+    reduce_rate = 1 - count / (len_times ** 2)
     worker = partial(
         _eval_simvec_lsh,
         _sim = _sim,
@@ -614,7 +627,7 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
     for simvec, idx1 in results:
         simmat_lil[idx1, :] = simvec
 
-    return simmat_lil.tocoo(), times
+    return simmat_lil.tocoo(), times, reduce_rate
 
 
         
