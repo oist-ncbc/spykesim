@@ -6,6 +6,7 @@
 spykesim is a Python module that offers functions for measuring the similarity between two segmented multi-neuronal spiking activities.
 Extended edit similarity measurement is implemented. You can find the details in the following paper.
 bioArxiv: https://www.biorxiv.org/content/early/2017/10/30/202655
+This library is re-implementation of the algorithm. The original implementation can be found in [this repo](https://github.com/KeitaW/Chaldea).
 # Supported Operating Systems
 This library tested on Ubuntu and MacOS.
 
