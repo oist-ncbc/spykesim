@@ -595,13 +595,12 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
     times_list = []
     for idx1, t1 in enumerate(times):
         indices = find_similar(numhash, numband, bandwidth, sigmat, bucket_list, idx1)
-        indices_list.append(indices)
+        indices_list.append(set(indices))
         times_list.append([times[idx2] for idx2 in indices])
     count = 0
     for times in times_list:
-        for t in times:
-            count += 1
-    reduce_rate = 1 - count / (len_times ** 2)
+        count += 1
+    reduce_rate = (count / (len_times ** 2))
     worker = partial(
         _eval_simvec_lsh,
         _sim = _sim,
