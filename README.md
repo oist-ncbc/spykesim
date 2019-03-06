@@ -4,12 +4,17 @@
 [![Build Status](https://travis-ci.org/KeitaW/spykesim.svg?branch=master)](https://travis-ci.org/KeitaW/spykesim)
 
 spykesim is a Python module that offers functions for measuring the similarity between two segmented multi-neuronal spiking activities.
-Extended edit similarity measurement is implemented. You can find the details in the following paper.
+
+Extended edit similarity measurement is implemented. You can find details in the following paper.
+
 bioArxiv: https://www.biorxiv.org/content/early/2017/10/30/202655
+
+This library is re-implementation of the algorithm. The original implementation can be found in [this repo](https://github.com/KeitaW/Chaldea).
+
 # Supported Operating Systems
 This library tested on Ubuntu and MacOS.
 
-For Windows users: Please consider to use Ubuntu via Windows Subsystem for Linux.
+For Windows users: Please consider to use Ubuntu via [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
 # Installation
 If you do not have Python3.x, you may use [Anaconda](https://www.anaconda.com/distribution/).
