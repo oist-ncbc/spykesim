@@ -9,7 +9,7 @@ bioArxiv: https://www.biorxiv.org/content/early/2017/10/30/202655
 # Supported Operating Systems
 This library tested on Ubuntu and MacOS.
 
-For Windows users: Please consider to use Ubuntu via Windows Subsystem for Linux.
+For Windows users: Please consider to use Ubuntu via [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
 # Installation
 If you do not have Python3.x, you may use [Anaconda](https://www.anaconda.com/distribution/).
