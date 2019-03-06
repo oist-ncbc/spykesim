@@ -24,52 +24,28 @@ def genpoisson_spiketrains(nneurons, rate, dt, duration):
 def gen_sequence(nneurons = 10, seqlen = 0.1, dt = 0.001):
     return np.round(np.linspace(dt, seqlen-dt, nneurons), int(-np.log10(dt)))
 
-def gen_sequences(neurons = np.arange(10), nsequences = 10, start = 0, end = 60, seqlen = 0.1, dt = 0.001, shrink = 1):
+def gen_sequences(neurons = np.arange(10), nsequences = 10, start = 0, end = 600, seqlen = 0.1, dt = 0.001):
     spike_timings = np.array([], dtype = np.float)
     spike_neurons = np.array([], dtype = np.int)
     nneurons = len(neurons)
-    sequence_onsets = np.random.choice(
-        np.arange(start, end - seqlen, seqlen),
-        nsequences,
-        replace = False
-    )
+    sequence_onsets = np.arange(start, end - seqlen, seqlen)
     for onset in sequence_onsets:
-        spike_timings = np.r_[spike_timings, onset + gen_sequence(nneurons, seqlen / shrink, dt)]
+        spike_timings = np.r_[spike_timings, onset + gen_sequence(nneurons, seqlen, dt)]
         spike_neurons = np.r_[spike_neurons, neurons]
     return pd.DataFrame({
         "neuronid": spike_neurons,
         "spiketime": spike_timings
-    }) 
-
-def gen_sequences_with_replay(shrinkages = [2], neurons = np.arange(10), nsequences = 10, duration = 60, seqlen = 0.1, dt = 0.001):
-    duration_per_type = duration / (len(shrinkages) + 1)
-    sequences = gen_sequences(neurons,
-                              nsequences,
-                              0,
-                              duration_per_type,
-                              seqlen,
-                              dt)
-    for idx, shrinkage in enumerate(shrinkages):
-        replay = gen_sequences(neurons,
-                               nsequences,
-                               duration_per_type * (idx + 1),
-                               duration_per_type * (idx + 2),
-                               seqlen,
-                               dt, 
-                               abs(shrinkage))
-        if shrinkage < 0: # reverse replay
-            replay = pd.DataFrame({
-                "neuronid": replay.neuronid,
-                "spiketime": np.copy(replay.spiketime[::-1])
-            })
-        sequences = pd.concat([sequences, replay])
-    return sequences
-def df2binarray_csc(df, duration_ms = 60, binwidth = 1):
+    })
+def df2binarray_csc(df, duration_ms = None, binwidth = 1):
     neuronids = df.neuronid
     spikes_ms = df.spiketime * 1000
     nneurons = int(neuronids.max()+1)
     nrow = nneurons 
-    ncol = int(duration_ms) // binwidth + 1000
+    if duration_ms:
+        ncol = int(max(spikes_ms)) + 1
+        print(ncol)
+    else:
+        ncol = int(duration_ms) // binwidth + 1000
     binarray_lil = sparse.lil_matrix((nrow, ncol))
     for neuronid in range(nneurons):
         spike_train_of_a_neuron = spikes_ms[neuronids == neuronid]
@@ -82,42 +58,54 @@ def df2binarray_csc(df, duration_ms = 60, binwidth = 1):
 class EditsimTestCase(TestCase):
     def setUp(self):
         dt = 0.001
-        # nsequences = 10
-        # seqlen = 0.3
         nsequences = 5
         seqlen = 0.1
         self.seqlen = seqlen
-        shrinkages = [-5, 5]
-        nneurons = 10
-        duration = nsequences * seqlen * (len(shrinkages) + 1) + 0.2
+        nneurons = 100
         nseqkinds = 3
         df = pd.DataFrame()
-        for idx in range(nseqkinds):
-            df_seq = gen_sequences_with_replay(
-                shrinkages = shrinkages,
-                neurons = np.arange(nneurons*(idx), nneurons*(idx+1)),
-                nsequences = nsequences,
-                duration = duration,
-                seqlen = seqlen,
-                dt = dt)
-            df_seq = pd.DataFrame({
-                "neuronid": df_seq.neuronid,
-                "spiketime": np.copy(df_seq.spiketime + duration * idx + idx)
-            })
-            df = pd.concat([df, df_seq])
-
-        rate = 1
-        nneurons = nneurons*nseqkinds 
-        duration = duration*nseqkinds + nseqkinds
-        df_noise = genpoisson_spiketrains(nneurons, rate, dt, duration)
-        df = pd.concat([df, df_noise])
-        binarray_csc = df2binarray_csc(df, duration_ms=int(duration*1000), binwidth = 1)
-        self.binmat = binarray_csc
+        df_seq = gen_sequences(
+            neurons = np.arange(10),
+            nsequences = nsequences,
+            start = 0,
+            end = 10,
+            seqlen = seqlen,
+            dt = dt)
+        df_seq = pd.DataFrame({
+            "neuronid": df_seq.neuronid,
+            "spiketime": np.copy(df_seq.spiketime)
+        })
+        df = pd.concat([df, df_seq])
+        df_seq = gen_sequences(
+            neurons = np.arange(10, 20),
+            nsequences = nsequences,
+            start = 10.1,
+            end = 20,
+            seqlen = seqlen,
+            dt = dt)
+        df_seq = pd.DataFrame({
+            "neuronid": df_seq.neuronid,
+            "spiketime": np.copy(df_seq.spiketime)
+        })
+        df = pd.concat([df, df_seq])
+        df_seq = gen_sequences(
+            neurons = np.arange(20, 30),
+            nsequences = nsequences,
+            start = 20.1,
+            end = 30,
+            seqlen = seqlen,
+            dt = dt)
+        df_seq = pd.DataFrame({
+            "neuronid": df_seq.neuronid,
+            "spiketime": np.copy(df_seq.spiketime)
+        })
+        df = pd.concat([df, df_seq])
+        self.binmat = df2binarray_csc(df, 30)        
 
     def test_simmat(self):
         window = int(self.seqlen*1000)
         a = 0.01
         es = editsim.FromBinMat(alpha=a)
-        simmat_lsh = es.gensimmat(self.binmat, window, window//2, numband=3, bandwidth=10)
+        simmat_lsh = es.gensimmat(self.binmat, window, window, numband=3, bandwidth=10)
     def test_genidvec(self):
         eq_(1, 1)
