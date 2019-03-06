@@ -6,6 +6,7 @@ from libc.math cimport log
 import multiprocessing
 import ctypes
 from functools import partial
+import sys
 import os
 from .parallel import parallel_process
 from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar
@@ -587,7 +588,7 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
     for times in times_list:
         for t in times:
             count += 1
-    print("Reduce Rate: {}".format(1 - count / (len_times ** 2)))
+    sys.stderr.write("Reduce Rate: {}".format(1 - count / (len_times ** 2)))
     worker = partial(
         _eval_simvec_lsh,
         _sim = _sim,
