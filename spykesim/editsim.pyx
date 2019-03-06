@@ -8,7 +8,7 @@ import ctypes
 from functools import partial
 import os
 from .parallel import parallel_process
-from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar
+from .minhash import MinHash
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix, coo_matrix
 from pathlib import Path
 import h5py
@@ -575,19 +575,16 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
     times = range(0, binarray_csc.shape[1] - window, slidewidth)
     len_times = len(times)
     idmat = _get_idmat_multi(times, binarray_csc, window, njobs)
-    sigmat = generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, idmat, njobs)
-    bucket_list = generate_bucket_list_single(numhash, numband, bandwidth, sigmat)
-    indices_list = []
-    times_list = []
+    mh = MinHash(numband, bandwidth)
+    mh.fit(binarray_csc)
+    indices_list = set()
     for idx1, t1 in enumerate(times):
-        indices = find_similar(numhash, numband, bandwidth, sigmat, bucket_list, idx1)
-        indices_list.append(indices)
-        times_list.append([times[idx2] for idx2 in indices])
+        indices = mh.predict(idx1)
+        # indices = find_similar(numhash, numband, bandwidth, sigmat, bucket_list, idx1)
+        indices_list.union(indices)
+    times_list = [times[idx2] for idx2 in indices]
     count = 0
-    for times in times_list:
-        for t in times:
-            count += 1
-    print("Reduce Rate: {}".format(1 - count / (len_times ** 2)))
+    print("Reduce Rate: {}".format(1 - len(times_list) / (len_times ** 2)))
     worker = partial(
         _eval_simvec_lsh,
         _sim = _sim,
