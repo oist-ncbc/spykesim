@@ -1,5 +1,5 @@
-# Spykesim
-[![PyPI](https://img.shields.io/pypi/v/spykesim.svg)](https://pypi.org/project/spykesim/0.1.0/)
+# <img src="docs/spykesim_logo/wtext/spykesim_wtext.svg" width="320px">
+[![PyPI](https://img.shields.io/pypi/v/spykesim.svg)](https://pypi.org/project/spykesim/)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 [![Build Status](https://travis-ci.org/KeitaW/spykesim.svg?branch=master)](https://travis-ci.org/KeitaW/spykesim)
 
@@ -17,7 +17,7 @@ This library tested on Ubuntu and MacOS.
 For Windows users: Please consider to use Ubuntu via [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
 # Installation
-If you do not have Python3.x, you may use [Anaconda](https://www.anaconda.com/distribution/).
+If you do not have Python3.6 on your environment, you may use [Anaconda](https://www.anaconda.com/distribution/).
 
 [Cython](https://github.com/cython/cython) and [Numpy](https://github.com/numpy/numpy) needs to be preinstalled as these will be used in the installation process.
 
@@ -38,7 +38,7 @@ python setup.py build_ext --inplace install
 
 ## Dependencies
 
-- Python (>= 3.5)
+- Python (>= 3.6)
 - Numpy(Needs to be preinstalled)
 - Cython(Needs to be preinstalled)
 - scipy
