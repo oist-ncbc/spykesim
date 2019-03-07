@@ -106,7 +106,7 @@ class EditsimTestCase(TestCase):
         window = int(self.seqlen*1000)
         a = 0.05
         es = editsim.FromBinMat(alpha=a)
-        simmat_lsh = es.gensimmat(self.binmat, window, window, numband=3, bandwidth=10, minhash=True)
+        simmat_lsh = es.gensimmat(self.binmat, window, window, numband=1, bandwidth=50, minhash=True)
 
     def test_genidvec(self):
         eq_(1, 1)
