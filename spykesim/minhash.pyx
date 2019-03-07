@@ -12,6 +12,7 @@ class MinHash(object):
         self.numband = numband
         self.bandwidth = bandwidth
     def fit(self, csc_matrix, njobs=os.cpu_count()):
+        self.csc_matrix = csc_matrix
         self.signature_matrix = generate_signature_matrix(self, csc_matrix, njobs)
         self.bucket_list = generate_bucket_list(self, self.signature_matrix, njobs)
     def predict(self, col):
@@ -26,6 +27,18 @@ class MinHash(object):
             for item in self.bucket_list[idx][hash_]:
                 candidates.add(item)
         return candidates
+    # def gen_bucket_list(self):
+    #     self.bucket_list = []
+    #     for band in range(0, self.numhash, self.bandwidth):
+    #         bucket = dict()
+    #         for col in range(self.signature_matrix.shape[1]):
+    #             hash_ = hash128(self.signature_matrix[band:(band+bandwidth), col], band)
+    #             if not hash_ in bucket:
+    #                 bucket[hash_] = set()
+    #             bucket[hash_].add(col)
+    #         if len(bucket) > 0:
+    #             self.bucket_list.append(bucket)
+
 
 
 def minhash(words, seed=0):
