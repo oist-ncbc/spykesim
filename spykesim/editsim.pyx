@@ -599,7 +599,8 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
         times_list.append([times[idx2] for idx2 in indices])
     count = 0
     for times in times_list:
-        count += 1
+        for t in times:
+            count += 1
     reduce_rate = (count / (len_times ** 2))
     worker = partial(
         _eval_simvec_lsh,
