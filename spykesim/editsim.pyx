@@ -559,6 +559,9 @@ def _get_nonzero_indices(idx, indices, indptr, col, span):
     return idx, indices[indptr[col]:indptr[col+span]]
 
 def _get_idmat_multi(times, binarray_csc, window, njobs):
+    """
+    Currently single core version is used due to unsolved bug in this function.
+    """
     worker = partial(
         _get_nonzero_indices,
         indices=binarray_csc.indices,
@@ -575,6 +578,11 @@ def _get_idmat_multi(times, binarray_csc, window, njobs):
     for idx, indices in results:
         idmat[indices, idx] = 1
     return csc_matrix(idmat)
+def _get_idmat(times, binarray_csc, window):
+    idmat = np.zeros((binarray_csc.shape[0], len(times)))
+    for idx, col in enumerate(times):
+        idmat[:, idx] = binarray_csc[:, col:(col+window)].sum(axis=1).flatten()
+    return csc_matrix(idmat)
 
 def _eval_simvec_lsh(_sim, idx1, t1, len_times, indices, times, binarray_csc, window):
     simvec = np.zeros(len_times)
@@ -588,7 +596,8 @@ def _eval_simvec_lsh(_sim, idx1, t1, len_times, indices, times, binarray_csc, wi
 def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C window = 200, INT_C slidewidth = 200, njobs=12):
     times = range(0, binarray_csc.shape[1] - window, slidewidth)
     len_times = len(times)
-    idmat = _get_idmat_multi(times, binarray_csc, window, njobs)
+    # idmat = _get_idmat_multi(times, binarray_csc, window, njobs)
+    idmat = _get_idmat(times, binarray_csc, window)
     sigmat = generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, idmat, njobs)
     bucket_list = generate_bucket_list_single(numhash, numband, bandwidth, sigmat)
     indices_list = []
