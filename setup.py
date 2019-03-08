@@ -29,7 +29,7 @@ cmdclass = {'build_ext': build_ext} if USING_CYTHON else {}
 import numpy
 setup(
     name='spykesim',
-    version='0.1.5',
+    version='0.1.6',
     description='Python module that offers functions for measuring the similarity between two segmented multi-neuronal spiking activities.',
     long_description=readme,
     author='Keita Watanabe',
