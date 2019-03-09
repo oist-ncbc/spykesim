@@ -2,8 +2,8 @@ language: python
 python:
     - 3.6
 before_script:
-    - pip install numpy nose pandas
-    - python setup.py build_ext --inplace
+    - pip install numpy cython nose pandas
+    - python setup.py build_ext --inplace install
 script: 
     - nosetests
 

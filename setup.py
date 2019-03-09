@@ -8,23 +8,17 @@ with open('README.md') as f:
 
 with open('LICENSE') as f:
     license = f.read()
-try:
-    from Cython.Distutils.extension import Extension
-    from Cython.Distutils import build_ext
-except ImportError:
-    from setuptools import Extension
-    USING_CYTHON = False
-else:
-    USING_CYTHON = True
-print("using cython: ", USING_CYTHON)
-ext = 'pyx' if USING_CYTHON else 'c'
+
+from Cython.Distutils.extension import Extension
+from Cython.Distutils import build_ext
+ext = 'pyx'
 sources = glob('spykesim/*.%s' % (ext,))
 extensions = [
     Extension(source.split('.')[0].replace(os.path.sep, '.'),
               sources=[source],
     )
 for source in sources]
-cmdclass = {'build_ext': build_ext} if USING_CYTHON else {}
+cmdclass = {'build_ext': build_ext}
 
 import numpy
 setup(
@@ -34,7 +28,7 @@ setup(
     long_description=readme,
     author='Keita Watanabe',
     author_email='keitaw09@gmail.com',
-    install_requires=['numpy', 'cython', 'scipy', 'joblib', 'tqdm', 'h5py'],
+    install_requires=['scipy', 'joblib', 'tqdm', 'h5py'],
     url='https://github.com/KeitaW/spikesim',
     license=license,
     ext_modules=extensions,
