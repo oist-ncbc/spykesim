@@ -66,4 +66,4 @@ month = oct
 This project uses the following repository as a template.
 
 https://github.com/kennethreitz/samplemod 
-Copyright (c) 2017, Kenneth Reitz
+The original LICENSE file can be found in [here](misc/original_license.md).
