@@ -608,7 +608,6 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
         indices = find_similar(numhash, numband, bandwidth, sigmat, bucket_list, idx1)
         indices_list.append(set(indices))
         count += len(set(indices))
-        print(len(set(indices)))
         times_list.append([times[idx2] for idx2 in indices])
     reduce_rate = (count / (len_times ** 2))
     worker = partial(

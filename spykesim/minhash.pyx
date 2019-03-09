@@ -132,36 +132,3 @@ def find_similar(numhash, numband, bandwidth, signature_matrix, bucket_list, col
     return candidates
 
 
-#def main():
-#    # Test with small csc_mat
-#    mh = MinHash(20, 5)
-#    size = int(1e+02)
-#    csc_mat = np.random.randint(0, 1, size=size**2).reshape(size, size)
-#
-#    print("Signature Matrix calculation on CPU starts")
-#    sm_cpu = generate_signature_matrix(mh, csc_mat, mode="cpu")
-#    print("Signature Matrix calculated on CPU")
-#    print(sm_cpu)
-#    print("Signature Matrix calculation on GPU starts")
-#    sm_gpu = generate_signature_matrix(mh, data, mode="gpu")
-#    print("Signature Matrix calculated on GPU")
-#    print(sm_gpu)
-#
-#    # Performance evaluation with larger data
-#    import time
-#    mh = MinHash(20, 5)
-#    size = int(1e+03)
-#    data = np.random.randint(0, 1, size=size**2).reshape(size, size)
-#
-#    print("Signature Matrix calculation on CPU starts")
-#    start_time = time.time()
-#    sm_cpu = generate_signature_matrix(mh, data, mode="cpu")
-#    print("--- %s seconds ---" % (time.time() - start_time))
-#    print("Signature Matrix calculated on CPU")
-#    print(sm_cpu)
-#
-#
-#
-#if __name__ == "__main__":
-#    # execute only if run as a script
-    main()
