@@ -2,7 +2,7 @@ language: python
 python:
     - 3.6
 before_script:
-    - pip install numpy cython nose tqdm pandas scipy h5py
+    - pip install nose pandas h5py
     - python setup.py build_ext --inplace
 script: 
     - nosetests
