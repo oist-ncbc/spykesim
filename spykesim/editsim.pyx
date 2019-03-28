@@ -14,6 +14,7 @@ from pathlib import Path
 import h5py
 import datetime
 from logging import StreamHandler, Formatter, INFO, getLogger
+from hdbscan import HDBSCAN
 
 def init_logger():
     handler = StreamHandler()
@@ -110,12 +111,14 @@ class FromBinMat(object):
             times = np.arange(0, duration-window, slide)
             self.simmat, self.times = _eval_simmat(
                     self._sim, times, binarray_csc, window, slide, minhash)
-    def clustering(self):
+    def clustering(self, min_cluster_size=5):
         """
         Perform HDBSCAN clustering algorithm on the similarity matrix calculated by `gensimmat`
 
         """
-        raise NotImplementedError()
+        self.clusterer = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size)
+        self.cluster_labels = clusterer.fit_predict(self.simmat)
+        
     def barton_sternberg(self, cluster_id):
         raise NotImplementedError()
     def detect_sequences(self, cluster_id):
