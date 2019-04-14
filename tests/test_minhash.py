@@ -1,5 +1,4 @@
 from unittest import TestCase
-import os
 from nose.tools import ok_, eq_
 from ..spykesim import minhash
 import numpy as np
@@ -32,7 +31,7 @@ class SimmatTestCase(TestCase):
     def test_minhash(self):
         numband = 20
         bandwidth = 10
-        numhash = numband * bandwidth
+        numband * bandwidth
         mh = minhash.MinHash(numband, bandwidth)
         mh.fit(self.b)
         eq_({5, 6}, mh.predict(5))

@@ -61,8 +61,6 @@ class EditsimTestCase(TestCase):
         nsequences = 5
         seqlen = 0.1
         self.seqlen = seqlen
-        nneurons = 100
-        nseqkinds = 3
         df = pd.DataFrame()
         df_seq = gen_sequences(
             neurons = np.arange(10),
