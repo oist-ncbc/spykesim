@@ -40,7 +40,7 @@ def df2binarray_csc(df, duration_ms = None, binwidth = 1):
     neuronids = df.neuronid
     spikes_ms = df.spiketime * 1000
     nneurons = int(neuronids.max()+1)
-    nrow = nneurons 
+    nrow = nneurons
     if duration_ms:
         ncol = int(max(spikes_ms)) + 1
         print(ncol)
@@ -100,7 +100,7 @@ class EditsimTestCase(TestCase):
             "spiketime": np.copy(df_seq.spiketime)
         })
         df = pd.concat([df, df_seq])
-        self.binmat = df2binarray_csc(df, 30)        
+        self.binmat = df2binarray_csc(df, 30)
 
     def test_simmat(self):
         window = int(self.seqlen*1000)

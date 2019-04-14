@@ -36,7 +36,7 @@ def gen_sequences(neurons = np.arange(10), nsequences = 10, start = 0, end = 60,
     return pd.DataFrame({
         "neuronid": spike_neurons,
         "spiketime": spike_timings
-    }) 
+    })
 
 def gen_sequences_with_replay(shrinkages = [2], neurons = np.arange(10), nsequences = 10, duration = 60, seqlen = 0.1, dt = 0.001):
     duration_per_type = duration / (len(shrinkages) + 1)
@@ -52,7 +52,7 @@ def gen_sequences_with_replay(shrinkages = [2], neurons = np.arange(10), nsequen
                                duration_per_type * (idx + 1),
                                duration_per_type * (idx + 2),
                                seqlen,
-                               dt, 
+                               dt,
                                abs(shrinkage))
         if shrinkage < 0: # reverse replay
             replay = pd.DataFrame({
@@ -65,7 +65,7 @@ def df2binarray_csc(df, duration_ms = 61, binwidth = 1):
     neuronids = df.neuronid
     spikes_ms = df.spiketime * 1000
     nneurons = int(neuronids.max()+1)
-    nrow = nneurons 
+    nrow = nneurons
     ncol = int(duration_ms) // binwidth + 1000
     binarray_lil = sparse.lil_matrix((nrow, ncol))
     for neuronid in range(nneurons):
@@ -102,7 +102,7 @@ def gendata():
         df = pd.concat([df, df_seq])
 
     rate = 1
-    nneurons = nneurons*nseqkinds 
+    nneurons = nneurons*nseqkinds
     duration = duration*nseqkinds + nseqkinds
     df_noise = genpoisson_spiketrains(nneurons, rate, dt, duration)
     df = pd.concat([df, df_noise])
