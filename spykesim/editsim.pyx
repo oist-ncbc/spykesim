@@ -144,8 +144,9 @@ class FromBinMat(object):
                 mats = np.array(mats)
                 uidxs.append(uidx)
                 mats_list.append(mats)
-        self.profiles = _barton_sternberg(uidxs, mats_list, self._sim_bp)
-                profiles[uidx] = _barton_sternberg(mats, self._sim_bp, 2*len(mats))
+        self.profiles = dict()
+        for uidx, mats in zip(uidxs, mats_list):
+            self.profiles[uidx] = _barton_sternberg(mats, self._sim_bp, 2*len(mats))
         return self    
 
         raise NotImplementedError()
