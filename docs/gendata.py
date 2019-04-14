@@ -108,4 +108,3 @@ def gendata():
     df = pd.concat([df, df_noise])
     binarray_csc = df2binarray_csc(df, duration_ms=int(duration*1000), binwidth = 1)
     return df, binarray_csc
-
