@@ -4,31 +4,31 @@ from scipy import sparse
 
 def genpoisson_spiketrain(rate, dt, duration):
     offset = duration
-    events = np.cumsum(np.random.exponential(scale = 1 / rate, size = int(duration*rate + offset)))
+    events = np.cumsum(np.random.exponential(scale=1 / rate, size=int(duration*rate + offset)))
     return np.round(events[np.logical_and(0 < events, events < duration)], -int(np.log10(dt)))
 def genpoisson_spiketrains(nneurons, rate, dt, duration):
-    spike_timings = np.array([], dtype = np.float)
-    spike_neurons = np.array([], dtype = np.int)
+    spike_timings = np.array([], dtype=np.float)
+    spike_neurons = np.array([], dtype=np.int)
     for n in range(nneurons):
         spike_train = genpoisson_spiketrain(rate, dt, duration)
         spike_timings = np.r_[spike_timings, spike_train]
-        spike_neurons = np.r_[spike_neurons, n * np.ones_like(spike_train, dtype = np.int)]
+        spike_neurons = np.r_[spike_neurons, n * np.ones_like(spike_train, dtype=np.int)]
     return pd.DataFrame({
         "neuronid": spike_neurons,
         "spiketime": spike_timings
     })
 
-def gen_sequence(nneurons = 10, seqlen = 0.1, dt = 0.001):
+def gen_sequence(nneurons=10, seqlen=0.1, dt=0.001):
     return np.round(np.linspace(dt, seqlen-dt, nneurons), int(-np.log10(dt)))
 
-def gen_sequences(neurons = np.arange(10), nsequences = 10, start = 0, end = 60, seqlen = 0.1, dt = 0.001, shrink = 1):
-    spike_timings = np.array([], dtype = np.float)
-    spike_neurons = np.array([], dtype = np.int)
+def gen_sequences(neurons=np.arange(10), nsequences=10, start=0, end=60, seqlen=0.1, dt=0.001, shrink=1):
+    spike_timings = np.array([], dtype=np.float)
+    spike_neurons = np.array([], dtype=np.int)
     nneurons = len(neurons)
     sequence_onsets = np.random.choice(
         np.arange(start, end - seqlen, seqlen),
         nsequences,
-        replace = False
+        replace=False
     )
     for onset in sequence_onsets:
         spike_timings = np.r_[spike_timings, onset + gen_sequence(nneurons, seqlen / shrink, dt)]
@@ -38,7 +38,7 @@ def gen_sequences(neurons = np.arange(10), nsequences = 10, start = 0, end = 60,
         "spiketime": spike_timings
     }) 
 
-def gen_sequences_with_replay(shrinkages = [2], neurons = np.arange(10), nsequences = 10, duration = 60, seqlen = 0.1, dt = 0.001):
+def gen_sequences_with_replay(shrinkages=[2], neurons=np.arange(10), nsequences=10, duration=60, seqlen=0.1, dt=0.001):
     duration_per_type = duration / (len(shrinkages) + 1)
     sequences = gen_sequences(neurons,
                               nsequences,
@@ -61,7 +61,7 @@ def gen_sequences_with_replay(shrinkages = [2], neurons = np.arange(10), nsequen
             })
         sequences = pd.concat([sequences, replay])
     return sequences
-def df2binarray_csc(df, duration_ms = 61, binwidth = 1):
+def df2binarray_csc(df, duration_ms=61, binwidth=1):
     neuronids = df.neuronid
     spikes_ms = df.spiketime * 1000
     nneurons = int(neuronids.max()+1)
@@ -89,12 +89,12 @@ def gendata():
     df = pd.DataFrame()
     for idx in range(nseqkinds):
         df_seq = gen_sequences_with_replay(
-            shrinkages = shrinkages,
-            neurons = np.arange(nneurons*(idx), nneurons*(idx+1)),
-            nsequences = nsequences,
-            duration = duration,
-            seqlen = seqlen,
-            dt = dt)
+            shrinkages=shrinkages,
+            neurons=np.arange(nneurons*(idx), nneurons*(idx+1)),
+            nsequences=nsequences,
+            duration=duration,
+            seqlen=seqlen,
+            dt=dt)
         df_seq = pd.DataFrame({
             "neuronid": df_seq.neuronid,
             "spiketime": np.copy(df_seq.spiketime + duration * idx + idx)
@@ -106,6 +106,6 @@ def gendata():
     duration = duration*nseqkinds + nseqkinds
     df_noise = genpoisson_spiketrains(nneurons, rate, dt, duration)
     df = pd.concat([df, df_noise])
-    binarray_csc = df2binarray_csc(df, duration_ms=int(duration*1000), binwidth = 1)
+    binarray_csc = df2binarray_csc(df, duration_ms=int(duration*1000), binwidth=1)
     return df, binarray_csc
 
