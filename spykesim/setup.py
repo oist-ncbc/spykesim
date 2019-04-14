@@ -20,22 +20,21 @@ import Cython.Compiler.Options
 Cython.Compiler.Options.annotate = True
 import numpy  
 setup(
-  name = "editsim",
-  cmdclass = {"build_ext": build_ext},
-  include_dirs = [numpy.get_include()],
-  ext_modules =
-  [
+  name="editsim",
+  cmdclass={"build_ext": build_ext},
+  include_dirs=[numpy.get_include()],
+  ext_modules=[
     Extension("editsim",
               ["editsim.pyx"],
-              extra_compile_args = ["-O0"],
+              extra_compile_args=["-O0"],
               ),
     Extension("minhash",
               ["minhash.pyx"],
-              extra_compile_args = ["-O0"],
+              extra_compile_args=["-O0"],
               ),
     Extension("pymmh3",
               ["pymmh3.pyx"],
-              extra_compile_args = ["-O0"],
+              extra_compile_args=["-O0"],
               ),
   ]
 )
