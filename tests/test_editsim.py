@@ -2,7 +2,7 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 from scipy import sparse
-from nose.tools import ok_, eq_
+from nose.tools import eq_
 from ..spykesim import editsim
 
 def genpoisson_spiketrain(rate, dt, duration):
