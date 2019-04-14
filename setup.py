@@ -35,4 +35,3 @@ setup(
     cmdclass=cmdclass,
     include_dirs = [numpy.get_include()],
 )
-

@@ -37,4 +37,3 @@ class SimmatTestCase(TestCase):
         mh.fit(self.b)
         eq_({5, 6}, mh.predict(5))
         eq_({3}, mh.predict(3))
-
