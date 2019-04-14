@@ -18,7 +18,7 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import Cython.Compiler.Options
 Cython.Compiler.Options.annotate = True
-import numpy  
+import numpy
 setup(
   name = "editsim",
   cmdclass = {"build_ext": build_ext},
