@@ -15,6 +15,8 @@ import h5py
 import datetime
 from logging import StreamHandler, Formatter, INFO, getLogger
 from hdbscan import HDBSCAN
+from tqdm import tqdm
+from scipy.ndimage.filters import gaussian_filter1d
 
 def init_logger():
     handler = StreamHandler()
@@ -116,21 +118,23 @@ class FromBinMat(object):
         Perform HDBSCAN clustering algorithm on the similarity matrix calculated by `gensimmat`
 
         """
-        self.clusterer = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size)
-        self.cluster_labels = clusterer.fit_predict(self.simmat)
+        self.clusterer = HDBSCAN(min_cluster_size=min_cluster_size)
+        self.cluster_labels = self.clusterer.fit_predict(self.simmat)
         
-    def gen_profile(self):
+    def gen_profile(self, th_=5, sigma=5):
         uidxs = []
         mats_list = []
-        for uidx in np.unique(cluster_labels):
+        self.th_ = th_
+        self.sigma = sigma
+        for uidx in np.unique(self.cluster_labels):
             # uidx == -1 is just noise 
             if uidx == -1:
                 continue
-            indices = np.where(cluster_labels)[0]
+            indices = np.where(self.cluster_labels)[0]
             mats = []
             mats_org = []
             for idx in indices:
-                mat = cscmat[:, idx:(idx+window)].toarray()
+                mat = self.binarray_csc[:, idx:(idx+self.window)].toarray()
                 if mat.sum() >= th_:
                     mats_org.append(
                         mat.copy()
@@ -671,7 +675,7 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
 
 
         
-def __barton_sternberg(mats_, _sim_bp, INT_C niter):
+def _barton_sternberg(mats_, _sim_bp, INT_C niter):
     # First profile generation
     mats = mats_.copy()
     simmat = np.zeros((len(mats), len(mats)))
@@ -710,9 +714,9 @@ def __barton_sternberg(mats_, _sim_bp, INT_C niter):
             mats[j] = al2
             processed[j] = True
     return mats[i]
-def _barton_sternberg(uidxs, mats_list, _sim_bp):
-    args = [{
-        "uidx": uidx,
-        "mats_": mats,
-
-    }]
+#def _barton_sternberg(uidxs, mats_list, _sim_bp):
+#    args = [{
+#        "uidx": uidx,
+#        "mats_": mats,
+#
+#    } for uidx]
