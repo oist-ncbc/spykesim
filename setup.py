@@ -33,6 +33,6 @@ setup(
     license=license,
     ext_modules=extensions,
     cmdclass=cmdclass,
-    include_dirs = [numpy.get_include()],
+    include_dirs=[numpy.get_include()],
 )
 
