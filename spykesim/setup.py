@@ -13,7 +13,6 @@
 ##    extra_link_args=['-fopenmp'],
 ##)
 from distutils.core import setup
-from Cython.Build import cythonize
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import Cython.Compiler.Options
