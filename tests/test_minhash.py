@@ -1,6 +1,5 @@
 from unittest import TestCase
-import os
-from nose.tools import ok_, eq_
+from nose.tools import eq_
 from ..spykesim import minhash
 import numpy as np
 from scipy.sparse import csc_matrix
