@@ -119,7 +119,35 @@ class FromBinMat(object):
         self.clusterer = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size)
         self.cluster_labels = clusterer.fit_predict(self.simmat)
         
-    def barton_sternberg(self, cluster_id):
+    def gen_profile(self):
+        uidxs = []
+        mats_list = []
+        for uidx in np.unique(cluster_labels):
+            # uidx == -1 is just noise 
+            if uidx == -1:
+                continue
+            indices = np.where(cluster_labels)[0]
+            mats = []
+            mats_org = []
+            for idx in indices:
+                mat = cscmat[:, idx:(idx+window)].toarray()
+                if mat.sum() >= th_:
+                    mats_org.append(
+                        mat.copy()
+                    )                    
+                    for row in range(mat.shape[0]):
+                        mat[row, :] = gaussian_filter1d(input=mat[row, :], sigma=sigma)
+                    mats.append(
+                        mat.copy()
+                    )
+            if len(mats) >= 5:
+                mats = np.array(mats)
+                uidxs.append(uidx)
+                mats_list.append(mats)
+        self.profiles = _barton_sternberg(uidxs, mats_list, self._sim_bp)
+                profiles[uidx] = _barton_sternberg(mats, self._sim_bp, 2*len(mats))
+        return self    
+
         raise NotImplementedError()
     def detect_sequences(self, cluster_id):
         raise NotImplementedError()
@@ -434,7 +462,7 @@ def clocal_exp_editsim_withbp_withflip(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C
     else:
         return dp_max2, dp_max_x2, dp_max_y2, bp2, True
 
-def clocal_exp_editsim_align(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):
+def clocal_editsim_align(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):
     cdef INT_C roww, ncol, nneuron
     cdef INT_C col1, col2, row, col, i
     cdef DBL_C [:, :] mat2
@@ -480,7 +508,7 @@ def clocal_exp_editsim_align(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y, DBL
     return alignment1[:, :-1], alignment2[:, :-1]
 
 
-def clocal_exp_editsim_align_alt(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):
+def clocal_editsim_align_alt(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):
     cdef INT_C roww, ncol, nneuron
     cdef INT_C col1, col2, row, col, i
     cdef DBL_C [:, :] mat2
@@ -642,6 +670,48 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
 
 
         
+def __barton_sternberg(mats_, _sim_bp, INT_C niter):
+    # First profile generation
+    mats = mats_.copy()
+    simmat = np.zeros((len(mats), len(mats)))
+    processed = np.zeros(len(mats), dtype=np.bool)
+#     for idx1, mat1 in enumerate(mats):
+#         for idx2, mat2 in enumerate(mats[:idx1]):
+#             dp_max, dp_max_x, dp_max_y, bp, flip = editsim.clocal_exp_editsim_withbp_withflip(
+#                 mat1.astype(np.double), mat2.astype(np.double), a=a)
+#             simmat[idx1, idx2] = dp_max
+#     i, j = np.unravel_index(simmat.argmax(), simmat.shape)
+    cdef INT_C i, j, iter_, idx
+    i, j = 1, 2 # For faster computation
+    dp_max, dp_max_x, dp_max_y, bp, flip = _sim_bp(
+        mats[i].astype(np.double), mats[j].astype(np.double))
+    al1, al2 = clocal_editsim_align_alt(bp, dp_max_x, dp_max_y, mats[i], mats[j], flip)
+    mats[i] = al1
+    mats[j] = al2
+    al = (al1 + al2) / 2
+    processed[i] = True
+    processed[j] = True
+    simvec = np.zeros(len(mats))
+    for iter_ in tqdm(range(niter)):
+        if processed.sum() == 0:
+            processed = np.zeros(len(mats), dtype=np.bool)
+        else:
+            for idx, mat2 in zip(np.arange(len(mats))[~processed], mats[~processed]):
+                dp_max, dp_max_x, dp_max_y, bp, flip = _sim_bp(
+                    al.astype(np.double), mat2.astype(np.double))
+                simvec[idx] = dp_max
+            j = simvec.argmax()
+            mat2 = mats[j]
+            dp_max, dp_max_x, dp_max_y, bp, flip = _sim_bp(
+                al.astype(np.double), mats[j].astype(np.double))
+            al1, al2 = clocal_editsim_align_alt(bp, dp_max_x, dp_max_y, al, mats[j], flip)
+            al = (al1 + al2) / 2            
+            mats[j] = al2
+            processed[j] = True
+    return mats[i]
+def _barton_sternberg(uidxs, mats_list, _sim_bp):
+    args = [{
+        "uidx": uidx,
+        "mats_": mats,
 
-    
-
+    }]
