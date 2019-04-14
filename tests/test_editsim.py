@@ -7,26 +7,26 @@ from ..spykesim import editsim
 
 def genpoisson_spiketrain(rate, dt, duration):
     offset = duration
-    events = np.cumsum(np.random.exponential(scale = 1 / rate, size = int(duration*rate + offset)))
+    events = np.cumsum(np.random.exponential(scale=1 / rate, size=int(duration*rate + offset)))
     return np.round(events[np.logical_and(0 < events, events < duration)], -int(np.log10(dt)))
 def genpoisson_spiketrains(nneurons, rate, dt, duration):
-    spike_timings = np.array([], dtype = np.float)
-    spike_neurons = np.array([], dtype = np.int)
+    spike_timings = np.array([], dtype=np.float)
+    spike_neurons = np.array([], dtype=np.int)
     for n in range(nneurons):
         spike_train = genpoisson_spiketrain(rate, dt, duration)
         spike_timings = np.r_[spike_timings, spike_train]
-        spike_neurons = np.r_[spike_neurons, n * np.ones_like(spike_train, dtype = np.int)]
+        spike_neurons = np.r_[spike_neurons, n * np.ones_like(spike_train, dtype=np.int)]
     return pd.DataFrame({
         "neuronid": spike_neurons,
         "spiketime": spike_timings
     })
 
-def gen_sequence(nneurons = 10, seqlen = 0.1, dt = 0.001):
+def gen_sequence(nneurons=10, seqlen=0.1, dt=0.001):
     return np.round(np.linspace(dt, seqlen-dt, nneurons), int(-np.log10(dt)))
 
-def gen_sequences(neurons = np.arange(10), nsequences = 10, start = 0, end = 600, seqlen = 0.1, dt = 0.001):
-    spike_timings = np.array([], dtype = np.float)
-    spike_neurons = np.array([], dtype = np.int)
+def gen_sequences(neurons=np.arange(10), nsequences=10, start=0, end=600, seqlen=0.1, dt=0.001):
+    spike_timings = np.array([], dtype=np.float)
+    spike_neurons = np.array([], dtype=np.int)
     nneurons = len(neurons)
     sequence_onsets = np.arange(start, end - seqlen, seqlen)
     for onset in sequence_onsets:
@@ -36,7 +36,7 @@ def gen_sequences(neurons = np.arange(10), nsequences = 10, start = 0, end = 600
         "neuronid": spike_neurons,
         "spiketime": spike_timings
     })
-def df2binarray_csc(df, duration_ms = None, binwidth = 1):
+def df2binarray_csc(df, duration_ms=None, binwidth=1):
     neuronids = df.neuronid
     spikes_ms = df.spiketime * 1000
     nneurons = int(neuronids.max()+1)
@@ -65,36 +65,36 @@ class EditsimTestCase(TestCase):
         nseqkinds = 3
         df = pd.DataFrame()
         df_seq = gen_sequences(
-            neurons = np.arange(10),
-            nsequences = nsequences,
-            start = 0,
-            end = 10,
-            seqlen = seqlen,
-            dt = dt)
+            neurons=np.arange(10),
+            nsequences=nsequences,
+            start=0,
+            end=10,
+            seqlen=seqlen,
+            dt=dt)
         df_seq = pd.DataFrame({
             "neuronid": df_seq.neuronid,
             "spiketime": np.copy(df_seq.spiketime)
         })
         df = pd.concat([df, df_seq])
         df_seq = gen_sequences(
-            neurons = np.arange(10, 20),
-            nsequences = nsequences,
-            start = 10.1,
-            end = 20,
-            seqlen = seqlen,
-            dt = dt)
+            neurons=np.arange(10, 20),
+            nsequences=nsequences,
+            start=10.1,
+            end=20,
+            seqlen=seqlen,
+            dt=dt)
         df_seq = pd.DataFrame({
             "neuronid": df_seq.neuronid,
             "spiketime": np.copy(df_seq.spiketime)
         })
         df = pd.concat([df, df_seq])
         df_seq = gen_sequences(
-            neurons = np.arange(20, 30),
-            nsequences = nsequences,
-            start = 20.1,
-            end = 30,
-            seqlen = seqlen,
-            dt = dt)
+            neurons=np.arange(20, 30),
+            nsequences=nsequences,
+            start=20.1,
+            end=30,
+            seqlen=seqlen,
+            dt=dt)
         df_seq = pd.DataFrame({
             "neuronid": df_seq.neuronid,
             "spiketime": np.copy(df_seq.spiketime)
