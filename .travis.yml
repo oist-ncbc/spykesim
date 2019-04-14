@@ -2,7 +2,8 @@ language: python
 python:
     - 3.6
 before_script:
-    - pip install numpy cython nose pandas hdbscan
+    - pip install cython
+    - pip install numpy nose pandas hdbscan
     - python setup.py build_ext --inplace install
 script: 
     - nosetests
