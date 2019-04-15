@@ -80,9 +80,9 @@ def gendata():
     dt = 0.001
     # nsequences = 10
     # seqlen = 0.3
-    nsequences = 5
+    nsequences = 10
     seqlen = 0.1
-    shrinkages = [-5, 5]
+    shrinkages = [1, 1]
     nneurons = 10
     duration = nsequences * seqlen * (len(shrinkages) + 1) + 0.2
     nseqkinds = 3
