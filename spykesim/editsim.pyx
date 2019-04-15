@@ -113,6 +113,7 @@ class FromBinMat(object):
             times = np.arange(0, duration-window, slide)
             self.simmat, self.times = _eval_simmat(
                     self._sim, times, binarray_csc, window, slide, minhash)
+
     def clustering(self, min_cluster_size=5):
         """
         Perform HDBSCAN clustering algorithm on the similarity matrix calculated by `gensimmat`
@@ -120,7 +121,7 @@ class FromBinMat(object):
         """
         self.clusterer = HDBSCAN(min_cluster_size=min_cluster_size)
         self.cluster_labels = self.clusterer.fit_predict(self.simmat)
-        
+
     def gen_profile(self, th_=5, sigma=5):
         uidxs = []
         mats_list = []
@@ -130,11 +131,11 @@ class FromBinMat(object):
             # uidx == -1 is just noise 
             if uidx == -1:
                 continue
-            indices = np.where(self.cluster_labels)[0]
+            indices = np.where(self.cluster_labels == uidx)[0]
             mats = []
             mats_org = []
             for idx in indices:
-                mat = self.binarray_csc[:, idx:(idx+self.window)].toarray()
+                mat = self.binarray_csc[:, self.window*idx:(self.window*idx+self.window)].toarray()
                 if mat.sum() >= th_:
                     mats_org.append(
                         mat.copy()
@@ -147,13 +148,14 @@ class FromBinMat(object):
             if len(mats) >= 5:
                 mats = np.array(mats)
                 uidxs.append(uidx)
-                mats_list.append(mats)
+                mats_list.append(mats.copy())
         self.profiles = dict()
         for uidx, mats in zip(uidxs, mats_list):
-            self.profiles[uidx] = _barton_sternberg(mats, self._sim_bp, 2*len(mats))
-        return self    
+            profile = regularize_profile(barton_sternberg(mats, self._sim_bp, 2*len(mats)))
+            if profile.sum() >= th_:
+                self.profilself[uidx] = regularize_profile(barton_sternberg(mats, self._sim_bp, 2*len(mats)))
+        return es            
 
-        raise NotImplementedError()
     def detect_sequences(self, cluster_id):
         raise NotImplementedError()
 
@@ -674,49 +676,90 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
     return simmat_lil.tocoo(), times, reduce_rate
 
 
-        
-def _barton_sternberg(mats_, _sim_bp, INT_C niter):
+def regularize_profile(profile_):
+    profile = profile_.copy()
+    for row in range(profile.shape[0]):
+        if profile[row, :].sum() > 0:
+            profile[row, :] = (profile[row, :] - profile[row, :].min()) / (profile[row, :].max() - profile[row, :].min())
+    return profile
+def barton_sternberg(mats_, sim_bp, niter):
     # First profile generation
     mats = mats_.copy()
     simmat = np.zeros((len(mats), len(mats)))
     processed = np.zeros(len(mats), dtype=np.bool)
-#     for idx1, mat1 in enumerate(mats):
-#         for idx2, mat2 in enumerate(mats[:idx1]):
-#             dp_max, dp_max_x, dp_max_y, bp, flip = editsim.clocal_exp_editsim_withbp_withflip(
-#                 mat1.astype(np.double), mat2.astype(np.double), a=a)
-#             simmat[idx1, idx2] = dp_max
-#     i, j = np.unravel_index(simmat.argmax(), simmat.shape)
-    cdef INT_C i, j, iter_, idx
-    i, j = 1, 2 # For faster computation
-    dp_max, dp_max_x, dp_max_y, bp, flip = _sim_bp(
+    #for idx1, mat1 in enumerate(mats):
+    #    for idx2, mat2 in enumerate(mats[:idx1]):
+    #        dp_max, dp_max_x, dp_max_y, bp, flip = sim_bp(
+    #            mat1.astype(np.double), mat2.astype(np.double))
+    #        simmat[idx1, idx2] = dp_max
+    #i, j = np.unravel_index(simmat.argmax(), simmat.shape)
+    i, j = 1, 2 # for test
+    dp_max, dp_max_x, dp_max_y, bp, flip = sim_bp(
         mats[i].astype(np.double), mats[j].astype(np.double))
-    al1, al2 = clocal_editsim_align_alt(bp, dp_max_x, dp_max_y, mats[i], mats[j], flip)
+    al1, al2 = clocal_exp_editsim_align_alt(bp, dp_max_x, dp_max_y, mats[i], mats[j], flip)
     mats[i] = al1
     mats[j] = al2
     al = (al1 + al2) / 2
     processed[i] = True
     processed[j] = True
     simvec = np.zeros(len(mats))
-    for iter_ in tqdm(range(niter)):
+    for niter_ in tqdm(range(1, niter)): 
         if processed.sum() == 0:
             processed = np.zeros(len(mats), dtype=np.bool)
         else:
             for idx, mat2 in zip(np.arange(len(mats))[~processed], mats[~processed]):
-                dp_max, dp_max_x, dp_max_y, bp, flip = _sim_bp(
+                dp_max, dp_max_x, dp_max_y, bp, flip = sim_bp(
                     al.astype(np.double), mat2.astype(np.double))
                 simvec[idx] = dp_max
             j = simvec.argmax()
             mat2 = mats[j]
-            dp_max, dp_max_x, dp_max_y, bp, flip = _sim_bp(
+            dp_max, dp_max_x, dp_max_y, bp, flip = sim_bp(
                 al.astype(np.double), mats[j].astype(np.double))
-            al1, al2 = clocal_editsim_align_alt(bp, dp_max_x, dp_max_y, al, mats[j], flip)
+            al1, al2 = clocal_exp_editsim_align_alt(bp, dp_max_x, dp_max_y, al, mats[j], flip)
             al = (al1 + al2) / 2            
             mats[j] = al2
             processed[j] = True
     return mats[i]
-#def _barton_sternberg(uidxs, mats_list, _sim_bp):
-#    args = [{
-#        "uidx": uidx,
-#        "mats_": mats,
-#
-#    } for uidx]
+
+def clocal_exp_editsim_align_alt(bp, dp_max_x, dp_max_y, mat1, mat2_, flip=False):
+    if flip:
+        mat2 = mat2_[:, ::-1]
+    else:
+        mat2 = mat2_
+    nneuron = mat1.shape[0]
+    row = dp_max_x
+    col = dp_max_y
+    row_ = 0
+    col_ = 0
+    # The first column is inserted just to avoid initialization error that may occur on concatination.
+    alignment1 = np.zeros_like(mat1)
+    alignment2 = np.zeros_like(mat2)
+    zerovec = np.zeros(mat1.shape[0]) # which is corresponding to the null character.
+    match = np.zeros(mat1.shape[0])
+    while True:
+        if bp[row, col] == -1:
+            # Eather of the strings tracing terminated
+            break
+        elif bp[row, col] == 3:
+#             for i in range(nneuron):
+#                 match[i] = mat1[i, row-1] * mat2[i, col-1]
+            alignment1[:, row_] = mat1[:, row-1] + mat2[:, col-1]
+            alignment2[:, col_] = mat1[:, row-1] + mat2[:, col-1]
+            row -= 1
+            col -= 1
+            row_ += 1
+            col_ += 1
+        elif bp[row, col] == 2:
+            col -= 1
+            col_ += 1
+            alignment2[:, col_] = mat2[:, col-1]
+        elif bp[row, col] == 1:
+            row -= 1
+            row_ += 1
+            alignment1[:, row_] = mat1[:, row-1]
+        elif bp[row, col] == 0:
+            break
+    alignment1[:, :] = alignment1[:, ::-1]
+    alignment2[:, :] = alignment2[:, ::-1]
+    return alignment1, alignment2
+        
