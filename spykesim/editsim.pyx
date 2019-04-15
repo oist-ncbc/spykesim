@@ -154,7 +154,7 @@ class FromBinMat(object):
             profile = regularize_profile(barton_sternberg(mats, self._sim_bp, 2*len(mats)))
             if profile.sum() >= th_:
                 self.profilself[uidx] = regularize_profile(barton_sternberg(mats, self._sim_bp, 2*len(mats)))
-        return es            
+        return self           
 
     def detect_sequences(self, cluster_id):
         raise NotImplementedError()
