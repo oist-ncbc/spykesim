@@ -36,7 +36,7 @@ class FromBinMat(object):
     Parameters
     ------------
     sim_type: {"exp", "linear", "simple"}
-        Form of the penalization.
+        Form of the penalization. Currently, only "exp" is implemented.
 
     alpha: float, default: 0.1
         Strength of gap penalty used in "exp" and "linear".
@@ -46,15 +46,31 @@ class FromBinMat(object):
 
     Attributes
     ------------
-    TODO
+    binarray_csc: csc sparse matrix
+        The binned-multi neuronal activity matrix. This will be set via ``gensimmat``. Row indicates neuron ID and column indicates time bins.
+
+    window: int 
+        The size of time window. This will be set when ``gensimmat`` performed.
+
+    simmat: array of shap = [number of segments, number of segments] 
+        The similarity matrix when ``gensimmat`` performed.
+
 
     Examples
     ------------
-    TODO
+    >>> a = 0.01
+    >>> es = editsim.FromBinMat(alpha=a)
+    >>> sim, _, _, _ = es._sim(mat1, mat2)
+    >>> print(f"The edit similarity between mat1 and mat2 is {sim}")
 
-    Notes
-    ------------
-    TODO
+    >>> window = 100 # ms
+    >>> es.gensimmat(
+    ...     binmat, window=window, slide=window, numband=4, bandwidth=5, minhash=False
+    ... )
+
+    References
+    -------------
+    bioArxiv: https://www.biorxiv.org/content/early/2017/10/30/202655
 
 
     """
