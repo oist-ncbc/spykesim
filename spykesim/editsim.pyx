@@ -31,7 +31,7 @@ def init_logger():
 class FromBinMat(object):
     """Compute extended-edit similarity values of segments of a binned-multineuronal activity data
 
-    Read more in the REF.
+    Find more in the References.
 
     Parameters
     ------------
@@ -58,12 +58,11 @@ class FromBinMat(object):
 
     Examples
     ------------
-    >>> a = 0.01
-    >>> es = editsim.FromBinMat(alpha=a)
+    >>> es = editsim.FromBinMat(alpha=0.01)
     >>> sim, _, _, _ = es._sim(mat1, mat2)
     >>> print(f"The edit similarity between mat1 and mat2 is {sim}")
 
-    >>> window = 100 # ms
+    >>> window = 100
     >>> es.gensimmat(
     ...     binmat, window=window, slide=window, numband=4, bandwidth=5, minhash=False
     ... )
@@ -109,7 +108,45 @@ class FromBinMat(object):
 
     def gensimmat(self, binarray_csc, window, slide,
                minhash=True, numband=5, bandwidth=10, njobs=os.cpu_count()):
-        # TODO: add automatic numband-bandwidth setting feature
+        """Compute the edit similarity matrix. 
+
+        Find more in the References.
+
+        Parameters
+        ------------
+        window: int 
+            The size of time window. 
+
+        slide: int
+            The size of sliding for the time window.
+
+        minhash: bool
+            If True, the minhash algorithm will be performed to 
+
+        Attributes
+        ------------
+        binarray_csc: csc sparse matrix
+            The binned-multi neuronal activity matrix.
+
+        simmat: array of shap = [number of segments, number of segments] 
+            The similarity matrix when ``gensimmat`` performed.
+
+        reduce_rate: float
+            This shows how much percent of pairs calculated. It will be set only when minhash=True
+
+
+        Examples
+        ------------
+        >>> window = 100
+        >>> es.gensimmat(
+        ...     binmat, window=window, slide=window, numband=4, bandwidth=5, minhash=False
+        ... )
+
+        References
+        -------------
+        bioArxiv: https://www.biorxiv.org/content/early/2017/10/30/202655
+        """
+
         self.binarray_csc = binarray_csc
         self.window = window
         self.slide = slide
