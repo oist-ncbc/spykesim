@@ -729,6 +729,21 @@ def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C 
     return simmat_lil.tocoo(), times, reduce_rate
 
 
+def sort_profile(profile):
+    coms = list()        
+    for row in range(profile.shape[0]):
+        com = center_of_mass(profile[row, :])[0]
+        if not np.isnan(com) and not np.isinf(com):
+            coms.append(int(com))
+        else:
+            coms.append(profile.shape[1]-1)
+    coms = pd.DataFrame({"CoM" : coms})    
+    coms = coms.sort_values(by="CoM")
+    sorted_profile = np.zeros_like(profile)
+    for srow, row in enumerate(coms.index):
+        sorted_profile[srow, :] = profile[row, :]
+    return(coms.index, sorted_profile)    
+
 def regularize_profile(profile_):
     profile = profile_.copy()
     for row in range(profile.shape[0]):
