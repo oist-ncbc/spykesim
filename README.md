@@ -61,8 +61,6 @@ month = oct
 ```
 # 
 
-# 
-
 
 This project uses the following repository as a template.
 
