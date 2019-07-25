@@ -7,7 +7,7 @@ spykesim is a Python module that offers functions for measuring the similarity b
 
 Extended edit similarity measurement is implemented. You can find details in the following paper.
 
-bioArxiv: https://www.biorxiv.org/content/early/2017/10/30/202655
+https://www.frontiersin.org/articles/10.3389/fninf.2019.00039
 
 This library is re-implementation of the algorithm. The original implementation can be found in [this repo](https://github.com/KeitaW/Chaldea).
 
@@ -51,12 +51,13 @@ You can find a tutorial in [doc](https://github.com/KeitaW/spykesim/blob/master/
 # Citation
 You can use the following bib entry to cite this work:
 ```
-@article{Watanabe:2017bla,
-author = {Watanabe, Keita and Haga, Tatsuya and Euston, David R and Tatsuno, Masami and Fukai, Tomoki},
-title = {{Unsupervised detection of cell-assembly sequences with edit similarity score}},
-year = {2017},
-pages = {202655},
-month = oct
+@article{Watanabe:2019eq,
+author = {Watanabe, Keita and Haga, Tatsuya and Tatsuno, Masami and Euston, David R and Fukai, Tomoki},
+title = {{Unsupervised Detection of Cell-Assembly Sequences by Similarity-Based Clustering}},
+journal = {Frontiers in Neuroinformatics},
+year = {2019},
+volume = {13},
+month = may
 }
 ```
 # 
