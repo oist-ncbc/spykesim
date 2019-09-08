@@ -211,8 +211,19 @@ class FromBinMat(object):
                 self.profiles[uidx] = regularize_profile(barton_sternberg(mats, self._sim_bp, 2*len(mats)))
         return self           
 
-    def detect_sequences(self, cluster_id):
-        raise NotImplementedError()
+    def detect_sequences(self, cluster_id, th=5):
+        profile = self.profiles[cluster_id]
+        times = np.arange(0, self.duration-self.window, self.window)
+        sequences = dict()
+        for idx, t in enumerate(times):
+            mat = self.binarray_csc[:, t:(t+self.window)].toarray().astype(DBL)
+            dp_max, dp_max_x, dp_max_y, bp, flip = clocal_exp_editsim_withbp_withflip(
+        mat, profile, a=self.alpha)
+            alignment = clocal_exp_editsim_align_profile(bp, dp_max_x, dp_max_y, mat, profile, flip)
+            if np.sum(alignment > th):
+                sequences[t] = alignment
+        return sequences
+
 
     def save(self, path="."):
         path = Path(path)
@@ -833,3 +844,30 @@ def clocal_exp_editsim_align_alt(bp, dp_max_x, dp_max_y, mat1, mat2_, flip=False
     alignment2[:, :] = alignment2[:, ::-1]
     return alignment1, alignment2
         
+def clocal_exp_editsim_align_profile(bp, dp_max_x, dp_max_y, mat1, profile, flip=False):
+    if flip:
+        mat2 = profile[:, ::-1]
+    else:
+        mat2 = profile
+    nneuron = mat1.shape[0]
+    row = dp_max_x
+    col = dp_max_y
+    # The first column is inserted just to avoid initialization error that may occur on concatination.
+    alignment1 = np.zeros_like(mat1)
+    while True:
+        if bp[row, col] == -1:
+            # Eather of the strings tracing terminated
+            break
+        elif bp[row, col] == 3:
+#             for i in range(nneuron):
+#                 alignment1[:, row-1] = 1 if mat1[i, row-1] * mat2[i, col-1] > 0 else 0
+            alignment1[:, row-1] = mat1[:, row-1]
+            row -= 1
+            col -= 1
+        elif bp[row, col] == 2:
+            col -= 1
+        elif bp[row, col] == 1:
+            row -= 1
+        elif bp[row, col] == 0:
+            break
+    return alignment1
