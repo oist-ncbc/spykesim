@@ -17,7 +17,7 @@ This library tested on Ubuntu and MacOS.
 For Windows users: Please consider to use Ubuntu via [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
 # Installation
-If you do not have Python3.6 on your environment, you may use [Anaconda](https://www.anaconda.com/distribution/).
+If you do not have Python3.7 on your environment, you may use [Anaconda](https://www.anaconda.com/distribution/).
 
 [Cython](https://github.com/cython/cython) and [Numpy](https://github.com/numpy/numpy) needs to be preinstalled as these will be used in the installation process.
 
@@ -38,7 +38,7 @@ python setup.py build_ext --inplace install
 
 ## Dependencies
 
-- Python (>= 3.6)
+- Python (>= 3.7)
 - Numpy(Needs to be preinstalled)
 - Cython(Needs to be preinstalled)
 - scipy
