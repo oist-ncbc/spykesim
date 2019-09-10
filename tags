@@ -1,0 +1,228 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+ALLSPHINXOPTS	docs/Makefile	/^ALLSPHINXOPTS   = -d $(BUILDDIR)\/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .$/;"	m
+ALLSPHINXOPTS	docs/make.bat	/^	set ALLSPHINXOPTS=-D latex_paper_size=%PAPER% %ALLSPHINXOPTS%$/;"	v
+ALLSPHINXOPTS	docs/make.bat	/^set ALLSPHINXOPTS=-d %BUILDDIR%\/doctrees %SPHINXOPTS% .$/;"	v
+BUILDDIR	docs/Makefile	/^BUILDDIR      = _build$/;"	m
+BUILDDIR	docs/make.bat	/^set BUILDDIR=_build$/;"	v
+Compiler	spykesim/setup.py	/^import Cython.Compiler.Options$/;"	i
+Cython	spykesim/setup.py	/^import Cython.Compiler.Options$/;"	i
+DBL	spykesim/editsim.pyx	/^DBL = np.double$/;"	v
+DBL	spykesim/pymmh3.pyx	/^DBL = np.double$/;"	v
+EditsimTestCase	tests/test_editsim.py	/^class EditsimTestCase(TestCase):$/;"	c
+Extension	setup.py	/^from Cython.Distutils.extension import Extension$/;"	i
+Extension	spykesim/setup.py	/^from distutils.extension import Extension$/;"	i
+Formatter	spykesim/editsim.pyx	/^from logging import StreamHandler, Formatter, INFO, getLogger$/;"	i
+Formatter	spykesim/parallel.pyx	/^from logging import StreamHandler, Formatter, INFO, getLogger$/;"	i
+FromBinMat	spykesim/editsim.pyx	/^class FromBinMat(object):$/;"	c
+HDBSCAN	spykesim/editsim.pyx	/^from hdbscan import HDBSCAN$/;"	i
+I18NSPHINXOPTS	docs/Makefile	/^I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .$/;"	m
+I18NSPHINXOPTS	docs/make.bat	/^	set I18NSPHINXOPTS=-D latex_paper_size=%PAPER% %I18NSPHINXOPTS%$/;"	v
+I18NSPHINXOPTS	docs/make.bat	/^set I18NSPHINXOPTS=%SPHINXOPTS% .$/;"	v
+INFO	spykesim/editsim.pyx	/^from logging import StreamHandler, Formatter, INFO, getLogger$/;"	i
+INFO	spykesim/parallel.pyx	/^from logging import StreamHandler, Formatter, INFO, getLogger$/;"	i
+INT	spykesim/editsim.pyx	/^INT = np.int$/;"	v
+INT	spykesim/pymmh3.pyx	/^INT = np.int$/;"	v
+MinHash	spykesim/editsim.pyx	/^from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar, generate_signature_matrix_cpu_single$/;"	i
+MinHash	spykesim/minhash.pyx	/^class MinHash(object):$/;"	c
+Options	spykesim/setup.py	/^import Cython.Compiler.Options$/;"	i
+PAPER	docs/Makefile	/^PAPER         =$/;"	m
+PAPER	docs/make.bat	/^	echo.  latex      to make LaTeX files, you can set PAPER=a4 or PAPER=letter$/;"	v
+PAPEROPT_a4	docs/Makefile	/^PAPEROPT_a4     = -D latex_paper_size=a4$/;"	m
+PAPEROPT_letter	docs/Makefile	/^PAPEROPT_letter = -D latex_paper_size=letter$/;"	m
+Path	spykesim/editsim.pyx	/^from pathlib import Path$/;"	i
+ProcessPoolExecutor	spykesim/parallel.pyx	/^from concurrent.futures import ProcessPoolExecutor, as_completed$/;"	i
+SPHINXBUILD	docs/Makefile	/^SPHINXBUILD   = sphinx-build$/;"	m
+SPHINXBUILD	docs/make.bat	/^	set SPHINXBUILD=sphinx-build$/;"	v
+SPHINXOPTS	docs/Makefile	/^SPHINXOPTS    =$/;"	m
+SimmatTestCase	tests/test_minhash.py	/^class SimmatTestCase(TestCase):$/;"	c
+StreamHandler	spykesim/editsim.pyx	/^from logging import StreamHandler, Formatter, INFO, getLogger$/;"	i
+StreamHandler	spykesim/parallel.pyx	/^from logging import StreamHandler, Formatter, INFO, getLogger$/;"	i
+TestCase	tests/test_editsim.py	/^from unittest import TestCase$/;"	i
+TestCase	tests/test_minhash.py	/^from unittest import TestCase$/;"	i
+_MURMURHASH3_H_	spykesim/murmur3.h	/^#define _MURMURHASH3_H_$/;"	d
+__init__	spykesim/editsim.pyx	/^    def __init__(self, sim_type="exp", alpha=0.1, reverse=True):$/;"	m	class:FromBinMat
+__init__	spykesim/minhash.pyx	/^    def __init__(self, numband, bandwidth):$/;"	m	class:MinHash
+_eval_simmat	spykesim/editsim.pyx	/^def _eval_simmat(_sim, times, binarray_csc, INT_C window = 200, INT_C slidewidth = 200, bint lsh=False, njobs = -1):$/;"	f
+_eval_simmat_minhash	spykesim/editsim.pyx	/^def _eval_simmat_minhash(_sim, numhash, numband, bandwidth, binarray_csc, INT_C window = 200, INT_C slidewidth = 200, njobs=12):$/;"	f
+_eval_simvec	spykesim/editsim.pyx	/^def _eval_simvec(_sim, idx1, t1, times, binarray_csc, window):$/;"	f
+_eval_simvec_lsh	spykesim/editsim.pyx	/^def _eval_simvec_lsh(_sim, idx1, t1, len_times, indices, times, binarray_csc, window):$/;"	f
+_generate_signature_vec	spykesim/minhash.pyx	/^def _generate_signature_vec(numhash, numband, bandwidth, csc_mat, col):$/;"	f
+_get_idmat	spykesim/editsim.pyx	/^def _get_idmat(times, binarray_csc, window):$/;"	f
+_get_idmat_multi	spykesim/editsim.pyx	/^def _get_idmat_multi(times, binarray_csc, window, njobs):$/;"	f
+_get_nonzero_indices	spykesim/editsim.pyx	/^def _get_nonzero_indices(idx, indices, indptr, col, span):$/;"	f
+as_completed	spykesim/parallel.pyx	/^from concurrent.futures import ProcessPoolExecutor, as_completed$/;"	i
+author	setup.py	/^    author='Keita Watanabe',$/;"	v
+author_email	setup.py	/^    author_email='keitaw09@gmail.com',$/;"	v
+barton_sternberg	spykesim/editsim.pyx	/^def barton_sternberg(mats_, sim_bp, niter):$/;"	f
+build_ext	setup.py	/^from Cython.Distutils import build_ext$/;"	i
+build_ext	spykesim/setup.py	/^from Cython.Distutils import build_ext$/;"	i
+center_of_mass	spykesim/editsim.pyx	/^from scipy.ndimage.measurements import center_of_mass$/;"	i
+clocal_editsim_align	spykesim/editsim.pyx	/^def clocal_editsim_align(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):$/;"	f
+clocal_editsim_align_alt	spykesim/editsim.pyx	/^def clocal_editsim_align_alt(INT_C[:, :] bp, INT_C dp_max_x, INT_C dp_max_y, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):$/;"	f
+clocal_exp_editsim	spykesim/editsim.pyx	/^def clocal_exp_editsim(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):$/;"	f
+clocal_exp_editsim_align_alt	spykesim/editsim.pyx	/^def clocal_exp_editsim_align_alt(bp, dp_max_x, dp_max_y, mat1, mat2_, flip=False):$/;"	f
+clocal_exp_editsim_withbp	spykesim/editsim.pyx	/^cpdef clocal_exp_editsim_withbp(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):$/;"	f
+clocal_exp_editsim_withbp_withflip	spykesim/editsim.pyx	/^def clocal_exp_editsim_withbp_withflip(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):$/;"	f
+clocal_exp_editsim_withflip	spykesim/editsim.pyx	/^def clocal_exp_editsim_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2, DBL_C a = 0.01):$/;"	f
+clustering	spykesim/editsim.pyx	/^    def clustering(self, min_cluster_size=5):$/;"	m	class:FromBinMat
+cmdclass	setup.py	/^    cmdclass=cmdclass,$/;"	v
+cmdclass	setup.py	/^cmdclass = {'build_ext': build_ext}$/;"	v
+cmdclass	spykesim/setup.py	/^  cmdclass = {"build_ext": build_ext},$/;"	v
+coo_matrix	spykesim/editsim.pyx	/^from scipy.sparse import lil_matrix, csr_matrix, csc_matrix, coo_matrix$/;"	i
+copyright	docs/conf.py	/^copyright = u'2012, Kenneth Reitz'$/;"	v
+csc_matrix	spykesim/editsim.pyx	/^from scipy.sparse import lil_matrix, csr_matrix, csc_matrix, coo_matrix$/;"	i
+csc_matrix	tests/test_minhash.py	/^from scipy.sparse import csc_matrix$/;"	i
+csimleeditsim_align	spykesim/editsim.pyx	/^def csimleeditsim_align(INT_C[:, :] bp, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, flip=False):$/;"	f
+csimpleeditsim	spykesim/editsim.pyx	/^def csimpleeditsim(DBL_C [:, :] mat1, DBL_C [:, :] mat2):$/;"	f
+csimpleeditsim_withbp	spykesim/editsim.pyx	/^def csimpleeditsim_withbp(DBL_C [:, :] mat1, DBL_C [:, :] mat2):$/;"	f
+csimpleeditsim_withbp_withflip	spykesim/editsim.pyx	/^def csimpleeditsim_withbp_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2):$/;"	f
+csimpleeditsim_withflip	spykesim/editsim.pyx	/^def csimpleeditsim_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2):$/;"	f
+csr_matrix	spykesim/editsim.pyx	/^from scipy.sparse import lil_matrix, csr_matrix, csc_matrix, coo_matrix$/;"	i
+ctypes	spykesim/editsim.pyx	/^import ctypes$/;"	i
+cython	spykesim/editsim.pyx	/^cimport cython$/;"	i
+cython	spykesim/minhash.pyx	/^cimport cython$/;"	i
+cython	spykesim/pymmh3.pyx	/^cimport cython$/;"	i
+cythonize	spykesim/setup.py	/^from Cython.Build import cythonize$/;"	i
+datetime	spykesim/editsim.pyx	/^import datetime$/;"	i
+description	setup.py	/^    description='Python module that offers functions for measuring the similarity between two segmented multi-neuronal spiking activities.',$/;"	v
+detect_sequences	spykesim/editsim.pyx	/^    def detect_sequences(self, cluster_id):$/;"	m	class:FromBinMat
+df2binarray_csc	docs/gendata.py	/^def df2binarray_csc(df, duration_ms = 61, binwidth = 1):$/;"	f
+df2binarray_csc	tests/test_editsim.py	/^def df2binarray_csc(df, duration_ms = None, binwidth = 1):$/;"	f
+editsim	tests/test_editsim.py	/^from ..spykesim import editsim$/;"	i
+end	docs/make.bat	/^:end$/;"	l
+eq_	tests/test_editsim.py	/^from nose.tools import ok_, eq_$/;"	i
+eq_	tests/test_minhash.py	/^from nose.tools import ok_, eq_$/;"	i
+exclude_patterns	docs/conf.py	/^exclude_patterns = ['_build']$/;"	v
+exp	spykesim/editsim.pyx	/^from libc.math cimport exp$/;"	i
+ext	setup.py	/^ext = 'pyx'$/;"	v
+ext_modules	setup.py	/^    ext_modules=extensions,$/;"	v
+ext_modules	spykesim/setup.py	/^  ext_modules =$/;"	v
+extensions	docs/conf.py	/^extensions = []$/;"	v
+extensions	setup.py	/^extensions = [$/;"	v
+extra_compile_args	spykesim/setup.py	/^              extra_compile_args = ["-O0"],$/;"	v
+find_packages	setup.py	/^from setuptools import setup, find_packages$/;"	i
+find_similar	spykesim/editsim.pyx	/^from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar, generate_signature_matrix_cpu_single$/;"	i
+find_similar	spykesim/minhash.pyx	/^def find_similar(numhash, numband, bandwidth, signature_matrix, bucket_list, col):$/;"	f
+fit	spykesim/minhash.pyx	/^    def fit(self, csc_matrix, njobs=os.cpu_count()):$/;"	m	class:MinHash
+fmix	spykesim/pymmh3.pyx	/^        def fmix( h ):$/;"	f	function:hash128.hash128_x86
+fmix	spykesim/pymmh3.pyx	/^        def fmix( k ):$/;"	f	function:hash128.hash128_x64
+fmix	spykesim/pymmh3.pyx	/^    def fmix( h ):$/;"	f	function:hash
+gaussian_filter1d	spykesim/editsim.pyx	/^from scipy.ndimage.filters import gaussian_filter1d$/;"	i
+gen_profile	spykesim/editsim.pyx	/^    def gen_profile(self, th_=5, sigma=5):$/;"	m	class:FromBinMat
+gen_sequence	docs/gendata.py	/^def gen_sequence(nneurons = 10, seqlen = 0.1, dt = 0.001):$/;"	f
+gen_sequence	tests/test_editsim.py	/^def gen_sequence(nneurons = 10, seqlen = 0.1, dt = 0.001):$/;"	f
+gen_sequences	docs/gendata.py	/^def gen_sequences(neurons = np.arange(10), nsequences = 10, start = 0, end = 60, seqlen = 0.1, dt = 0.001, shrink = 1):$/;"	f
+gen_sequences	tests/test_editsim.py	/^def gen_sequences(neurons = np.arange(10), nsequences = 10, start = 0, end = 600, seqlen = 0.1, dt = 0.001):$/;"	f
+gen_sequences_with_replay	docs/gendata.py	/^def gen_sequences_with_replay(shrinkages = [2], neurons = np.arange(10), nsequences = 10, duration = 60, seqlen = 0.1, dt = 0.001):$/;"	f
+gendata	docs/gendata.py	/^def gendata():$/;"	f
+generate_bucket_list	spykesim/minhash.pyx	/^def generate_bucket_list(minhash, signature_matrix, njobs):$/;"	f
+generate_bucket_list_single	spykesim/editsim.pyx	/^from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar, generate_signature_matrix_cpu_single$/;"	i
+generate_bucket_list_single	spykesim/minhash.pyx	/^def generate_bucket_list_single(numhash, numband, bandwidth, signature_matrix):$/;"	f
+generate_signature_matrix	spykesim/minhash.pyx	/^def generate_signature_matrix(minhash, csc_mat, njobs=-1):$/;"	f
+generate_signature_matrix_cpu_multi	spykesim/editsim.pyx	/^from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar, generate_signature_matrix_cpu_single$/;"	i
+generate_signature_matrix_cpu_multi	spykesim/minhash.pyx	/^def generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, csc_mat, njobs):$/;"	f
+generate_signature_matrix_cpu_single	spykesim/editsim.pyx	/^from .minhash import MinHash, generate_signature_matrix_cpu_multi, generate_bucket_list_single, find_similar, generate_signature_matrix_cpu_single$/;"	i
+generate_signature_matrix_cpu_single	spykesim/minhash.pyx	/^def generate_signature_matrix_cpu_single(numhash, numband, bandwidth, csc_mat):$/;"	f
+genpoisson_spiketrain	docs/gendata.py	/^def genpoisson_spiketrain(rate, dt, duration):$/;"	f
+genpoisson_spiketrain	tests/test_editsim.py	/^def genpoisson_spiketrain(rate, dt, duration):$/;"	f
+genpoisson_spiketrains	docs/gendata.py	/^def genpoisson_spiketrains(nneurons, rate, dt, duration):$/;"	f
+genpoisson_spiketrains	tests/test_editsim.py	/^def genpoisson_spiketrains(nneurons, rate, dt, duration):$/;"	f
+gensimmat	spykesim/editsim.pyx	/^    def gensimmat(self, binarray_csc, window, slide,$/;"	m	class:FromBinMat
+getLogger	spykesim/editsim.pyx	/^from logging import StreamHandler, Formatter, INFO, getLogger$/;"	i
+getLogger	spykesim/parallel.pyx	/^from logging import StreamHandler, Formatter, INFO, getLogger$/;"	i
+glob	setup.py	/^from glob import glob$/;"	i
+h5py	spykesim/editsim.pyx	/^import h5py$/;"	i
+hash	spykesim/pymmh3.pyx	/^def hash( key_, seed = 0x0 ):$/;"	f
+hash128	spykesim/minhash.pyx	/^from .pymmh3 import hash128, hash64$/;"	i
+hash128	spykesim/pymmh3.pyx	/^def hash128(key, int seed = 0x0, x64arch = True ):$/;"	f
+hash128_x64	spykesim/pymmh3.pyx	/^    def hash128_x64(key, int seed ):$/;"	f	function:hash128
+hash128_x86	spykesim/pymmh3.pyx	/^    def hash128_x86( key, seed ):$/;"	f	function:hash128
+hash64	spykesim/minhash.pyx	/^from .pymmh3 import hash128, hash64$/;"	i
+hash64	spykesim/pymmh3.pyx	/^def hash64( key, seed = 0x0, x64arch = True ):$/;"	f
+hash_bytes	spykesim/pymmh3.pyx	/^def hash_bytes( key, seed = 0x0, x64arch = True ):$/;"	f
+html_static_path	docs/conf.py	/^html_static_path = ['_static']$/;"	v
+html_theme	docs/conf.py	/^html_theme = 'default'$/;"	v
+htmlhelp_basename	docs/conf.py	/^htmlhelp_basename = 'sampledoc'$/;"	v
+include_dirs	setup.py	/^    include_dirs = [numpy.get_include()],$/;"	v
+include_dirs	spykesim/setup.py	/^  include_dirs = [numpy.get_include()],$/;"	v
+init_logger	spykesim/editsim.pyx	/^def init_logger():$/;"	f
+init_logger	spykesim/parallel.pyx	/^def init_logger():$/;"	f
+install_requires	setup.py	/^    install_requires=['scipy', 'joblib', 'tqdm', 'h5py'],$/;"	v
+jaccard	tests/test_minhash.py	/^def jaccard(csc_mat, col1, col2):$/;"	f
+latex_documents	docs/conf.py	/^latex_documents = [$/;"	v
+latex_elements	docs/conf.py	/^latex_elements = {$/;"	v
+license	setup.py	/^    license = f.read()$/;"	v
+license	setup.py	/^    license=license,$/;"	v
+lil_matrix	spykesim/editsim.pyx	/^from scipy.sparse import lil_matrix, csr_matrix, csc_matrix, coo_matrix$/;"	i
+load	spykesim/editsim.pyx	/^    def load(self, hdf5_file):$/;"	m	class:FromBinMat
+log	spykesim/editsim.pyx	/^from libc.math cimport log$/;"	i
+long_description	setup.py	/^    long_description=readme,$/;"	v
+man_pages	docs/conf.py	/^man_pages = [$/;"	v
+master_doc	docs/conf.py	/^master_doc = 'index'$/;"	v
+minhash	spykesim/minhash.pyx	/^def minhash(words, seed=0):$/;"	f
+minhash	tests/test_minhash.py	/^from ..spykesim import minhash$/;"	i
+multiprocessing	spykesim/editsim.pyx	/^import multiprocessing$/;"	i
+name	setup.py	/^    name='spykesim',$/;"	v
+name	spykesim/setup.py	/^  name = "editsim",$/;"	v
+np	docs/gendata.py	/^import numpy as np$/;"	i
+np	spykesim/editsim.pyx	/^cimport numpy as np$/;"	i
+np	spykesim/editsim.pyx	/^import numpy as np$/;"	i
+np	spykesim/minhash.pyx	/^cimport numpy as np$/;"	i
+np	spykesim/minhash.pyx	/^import numpy as np$/;"	i
+np	spykesim/pymmh3.pyx	/^cimport numpy as np$/;"	i
+np	spykesim/pymmh3.pyx	/^import numpy as np$/;"	i
+np	tests/test_editsim.py	/^import numpy as np$/;"	i
+np	tests/test_minhash.py	/^import numpy as np$/;"	i
+numpy	setup.py	/^import numpy$/;"	i
+numpy	spykesim/setup.py	/^import numpy  $/;"	i
+ok_	tests/test_editsim.py	/^from nose.tools import ok_, eq_$/;"	i
+ok_	tests/test_minhash.py	/^from nose.tools import ok_, eq_$/;"	i
+os	docs/conf.py	/^import sys, os$/;"	i
+os	setup.py	/^import os$/;"	i
+os	spykesim/editsim.pyx	/^import os$/;"	i
+os	spykesim/minhash.pyx	/^import os$/;"	i
+os	tests/test_minhash.py	/^import os$/;"	i
+parallel_process	spykesim/editsim.pyx	/^from .parallel import parallel_process$/;"	i
+parallel_process	spykesim/minhash.pyx	/^from .parallel import parallel_process$/;"	i
+parallel_process	spykesim/parallel.pyx	/^def parallel_process(array, function, n_jobs=48, use_kwargs=False, front_num=2, notebook=False):$/;"	f
+partial	spykesim/editsim.pyx	/^from functools import partial$/;"	i
+partial	spykesim/minhash.pyx	/^from functools import partial$/;"	i
+pd	docs/gendata.py	/^import pandas as pd$/;"	i
+pd	spykesim/editsim.pyx	/^import pandas as pd$/;"	i
+pd	tests/test_editsim.py	/^import pandas as pd$/;"	i
+predict	spykesim/minhash.pyx	/^    def predict(self, col):$/;"	m	class:MinHash
+project	docs/conf.py	/^project = u'sample'$/;"	v
+pygments_style	docs/conf.py	/^pygments_style = 'sphinx'$/;"	v
+readme	setup.py	/^    readme = f.read()$/;"	v
+regularize_profile	spykesim/editsim.pyx	/^def regularize_profile(profile_):$/;"	f
+release	docs/conf.py	/^release = 'v0.0.1'$/;"	v
+save	spykesim/editsim.pyx	/^    def save(self, path="."):$/;"	m	class:FromBinMat
+setUp	tests/test_editsim.py	/^    def setUp(self):$/;"	m	class:EditsimTestCase
+setUp	tests/test_minhash.py	/^    def setUp(self):$/;"	m	class:SimmatTestCase
+setup	setup.py	/^from setuptools import setup, find_packages$/;"	i
+setup	spykesim/setup.py	/^from distutils.core import setup$/;"	i
+sim	spykesim/editsim.pyx	/^    def sim(self, csc_mat1, csc_mat2, with_bp=False):$/;"	m	class:FromBinMat
+sort_profile	spykesim/editsim.pyx	/^def sort_profile(profile):$/;"	f
+source_suffix	docs/conf.py	/^source_suffix = '.rst'$/;"	v
+sources	setup.py	/^              sources=[source],$/;"	v
+sources	setup.py	/^sources = glob('spykesim\/*.%s' % (ext,))$/;"	v
+sparse	docs/gendata.py	/^from scipy import sparse$/;"	i
+sparse	tests/test_editsim.py	/^from scipy import sparse$/;"	i
+sys	docs/conf.py	/^import sys, os$/;"	i
+templates_path	docs/conf.py	/^templates_path = ['_templates']$/;"	v
+test_genidvec	tests/test_editsim.py	/^    def test_genidvec(self):$/;"	m	class:EditsimTestCase
+test_minhash	tests/test_minhash.py	/^    def test_minhash(self):$/;"	m	class:SimmatTestCase
+test_sigmat	tests/test_minhash.py	/^    def test_sigmat(self):$/;"	m	class:SimmatTestCase
+test_simmat	tests/test_editsim.py	/^    def test_simmat(self):$/;"	m	class:EditsimTestCase
+texinfo_documents	docs/conf.py	/^texinfo_documents = [$/;"	v
+tqdm	spykesim/editsim.pyx	/^from tqdm import tqdm$/;"	i
+tqdm	spykesim/parallel.pyx	/^from tqdm import tqdm, tqdm_notebook$/;"	i
+tqdm_notebook	spykesim/parallel.pyx	/^from tqdm import tqdm, tqdm_notebook$/;"	i
+url	setup.py	/^    url='https:\/\/github.com\/KeitaW\/spikesim',$/;"	v
+version	docs/conf.py	/^version = 'v0.0.1'$/;"	v
+version	setup.py	/^    version='1.1.10',$/;"	v
