@@ -23,7 +23,7 @@ cmdclass = {'build_ext': build_ext}
 import numpy
 setup(
     name='spykesim',
-    version='1.2.1',
+    version='1.2.4',
     description='Python module that offers functions for measuring the similarity between two segmented multi-neuronal spiking activities.',
     long_description=readme,
     author='Keita Watanabe',

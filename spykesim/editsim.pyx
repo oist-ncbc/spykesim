@@ -164,8 +164,8 @@ class FromBinMat(object):
                 self._sim, numhash, numband, bandwidth, binarray_csc, window, slide, njobs)
             getLogger().info(f"Reduce Rate: {self.reduce_rate}")
         else:
-            nneuron, duration = binarray_csc.shape
-            times = np.arange(0, duration-window, slide)
+            nneuron, self.duration = binarray_csc.shape
+            times = np.arange(0, self.duration-window, slide)
             self.simmat, self.times = _eval_simmat(
                     self._sim, times, binarray_csc, window, slide, minhash)
 
@@ -213,6 +213,7 @@ class FromBinMat(object):
 
     def detect_sequences(self, cluster_id, th=5):
         profile = self.profiles[cluster_id]
+        self.nneuron, self.duration = self.binarray_csc.shape
         times = np.arange(0, self.duration-self.window, self.window)
         sequences = dict()
         for idx, t in enumerate(times):
@@ -220,7 +221,7 @@ class FromBinMat(object):
             dp_max, dp_max_x, dp_max_y, bp, flip = clocal_exp_editsim_withbp_withflip(
         mat, profile, a=self.alpha)
             alignment = clocal_exp_editsim_align_profile(bp, dp_max_x, dp_max_y, mat, profile, flip)
-            if np.sum(alignment > th):
+            if np.sum(alignment) > th:
                 sequences[t] = alignment
         return sequences
 
