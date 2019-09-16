@@ -11,12 +11,12 @@ https://www.frontiersin.org/articles/10.3389/fninf.2019.00039
 
 This library is re-implementation of the algorithm. The original implementation can be found in [this repo](https://github.com/KeitaW/Chaldea).
 
-# Supported Operating Systems
+## Supported Operating Systems
 This library tested on Ubuntu and MacOS.
 
 For Windows users: Please consider to use Ubuntu via [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
-# Installation
+## Installation
 If you do not have Python3.7 on your environment, you may use [Anaconda](https://www.anaconda.com/distribution/).
 
 [Cython](https://github.com/cython/cython) and [Numpy](https://github.com/numpy/numpy) needs to be preinstalled as these will be used in the installation process.
@@ -36,7 +36,7 @@ cd spykesim
 python setup.py build_ext --inplace install
 ```
 
-## Dependencies
+### Dependencies
 
 - Python (>= 3.7)
 - Numpy(Needs to be preinstalled)
@@ -45,10 +45,10 @@ python setup.py build_ext --inplace install
 - tqdm
 - h5py
 
-# Tutorial 
+## Tutorial 
 You can find a tutorial in [doc](https://github.com/KeitaW/spykesim/blob/master/docs/tutorial.ipynb).
 
-# Citation
+## Citation
 You can use the following bib entry to cite this work:
 ```
 @article{Watanabe:2019eq,
@@ -60,10 +60,3 @@ volume = {13},
 month = may
 }
 ```
-# 
-
-
-This project uses the following repository as a template.
-
-https://github.com/kennethreitz/samplemod 
-The original LICENSE file can be found in [here](misc/original_license.md).
