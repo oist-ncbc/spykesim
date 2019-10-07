@@ -46,7 +46,7 @@ python setup.py build_ext --inplace install
 - h5py
 
 ## Tutorial 
-You can find a tutorial in [doc](https://github.com/KeitaW/spykesim/blob/master/docs/tutorial.ipynb).
+You can find a tutorial in [doc](https://nbviewer.jupyter.org/github/KeitaW/spykesim/blob/master/docs/tutorial.ipynb).
 
 ## Citation
 You can use the following bib entry to cite this work:
