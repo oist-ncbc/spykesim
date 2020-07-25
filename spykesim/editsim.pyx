@@ -353,6 +353,7 @@ def csimpleeditsim_withbp(DBL_C [:, :] mat1, DBL_C [:, :] mat2):
             bp[col1 + 1, col2 + 1] = pair.idx
             dp[col1 + 1, col2 + 1] = pair.value
     return dp[-1, -1], bp
+
 def csimpleeditsim_withbp_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2):
     cdef DBL_C dp_max1, dp_max2
     cdef np.ndarray[DBL_C, ndim=2] bp1, bp2
@@ -406,7 +407,8 @@ def csimleeditsim_align(INT_C[:, :] bp, DBL_C[:, :] mat1, DBL_C[:, :] mat2_, fli
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(True)  # turn off negative index wrapping for entire function        
-def clocal_exp_editsim(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):
+def clocal_exp_editsim(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01, zerospikes_penalty=False):
+    # TODO
     cdef int nrow, ncol, nneuron
     cdef int col1, col2, row      
     nrow = mat1.shape[1]
@@ -418,31 +420,43 @@ def clocal_exp_editsim(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):
     cdef INT_C dp_max_y = -1
     cdef np.ndarray[INT_C, ndim=2] down = np.zeros((nrow+1, ncol+1), dtype = INT)
     cdef np.ndarray[INT_C, ndim=2] right = np.zeros((nrow+1, ncol+1), dtype = INT)
-    cdef DBL_C match
+    cdef DBL_C match, nspikes1, nspikes2
     cdef Pair dirpair
     cdef DBL_C down_score,right_score
     for col1 in range(nrow):
         for col2 in range(ncol):
+            nspikes1 = 0
+            nspikes2 = 0
             match = 0
             for row in range(nneuron):
-                match += mat1[row, col1] * mat2[row, col2]            
-            match = -10 if match == 0 else match
-            # For Down
-            # Comparing options: newly extend a gap or extend the exsinting gap
-            dirpair = pairmax2(
-                dp[col1, col2+1] - cexp(a, 1) + 1,
-                dp[col1-down[col1, col2+1], col2+1] - cexp(a, down[col1, col2+1] + 1) + 1
-            )
-            down[col1+1, col2+1] = 1 if dirpair.idx == 0 else down[col1, col2+1] + 1
-            down_score = dp[col1-down[col1+1, col2+1]+1, col2+1] - cexp(a, down[col1+1, col2+1]) + 1
-            # For Rightp
-            # Comparing options: newly extend a gap or extend the exsinting gap
-            dirpair = pairmax2(
-                dp[col1+1, col2] - cexp(a, 1) + 1,
-                dp[col1+1, col2-right[col1+1, col2]] - cexp(a, right[col1+1, col2] + 1) + 1
-            )
-            right[col1+1, col2+1] = 1 if dirpair.idx == 0 else right[col1+1, col2] + 1
-            right_score = dp[col1+1, col2-right[col1+1, col2+1]+1] - cexp(a, right[col1+1, col2+1]) + 1
+                nspikes1 += mat1[row, col1]
+                nspikes2 += mat2[row, col2]
+                match += mat1[row, col1] * mat2[row, col2] 
+            if not zerospikes_penalty and (nspikes1 == 0 or nspikes2 == 0):
+                # For Down
+                down[col1+1, col2+1] = down[col1, col2+1]
+                down_score = dp[col1-down[col1+1, col2+1]+1, col2+1] - cexp(a, down[col1+1, col2+1]) + 1
+                # For Right
+                right[col1+1, col2+1] = right[col1+1, col2]
+                right_score = dp[col1+1, col2-right[col1+1, col2+1]+1] - cexp(a, right[col1+1, col2+1]) + 1
+            else:
+                match = -10 if match == 0 else match
+                # For Down
+                # Comparing options: newly extend a gap or extend the exsinting gap
+                dirpair = pairmax2(
+                    dp[col1, col2+1] - cexp(a, 1) + 1,
+                    dp[col1-down[col1, col2+1], col2+1] - cexp(a, down[col1, col2+1] + 1) + 1
+                )
+                down[col1+1, col2+1] = 1 if dirpair.idx == 0 else down[col1, col2+1] + 1
+                down_score = dp[col1-down[col1+1, col2+1]+1, col2+1] - cexp(a, down[col1+1, col2+1]) + 1
+                # For Rightp
+                # Comparing options: newly extend a gap or extend the exsinting gap
+                dirpair = pairmax2(
+                    dp[col1+1, col2] - cexp(a, 1) + 1,
+                    dp[col1+1, col2-right[col1+1, col2]] - cexp(a, right[col1+1, col2] + 1) + 1
+                )
+                right[col1+1, col2+1] = 1 if dirpair.idx == 0 else right[col1+1, col2] + 1
+                right_score = dp[col1+1, col2-right[col1+1, col2+1]+1] - cexp(a, right[col1+1, col2+1]) + 1
             # Update dp
             dp[col1+1, col2+1] = max4(
                 0,
@@ -457,6 +471,7 @@ def clocal_exp_editsim(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):
     return dp_max, dp_max_x, dp_max_y        
 
 def clocal_exp_editsim_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2, DBL_C a = 0.01):
+    # TODO
     cdef DBL_C dp_max1
     cdef INT_C dp_max_x1, dp_max_y1
     cdef DBL_C dp_max2
@@ -470,7 +485,7 @@ def clocal_exp_editsim_withflip(DBL_C [:, :] mat1, DBL_C [:, :] mat2, DBL_C a = 
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(True)  # turn off negative index wrapping for entire function        
-cpdef clocal_exp_editsim_withbp(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01):
+cpdef clocal_exp_editsim_withbp(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.01, zerospikes_penalty=False):
     cdef int nrow, ncol, nneuron
     cdef int col1, col2, row      
     nrow = mat1.shape[1]
@@ -483,31 +498,41 @@ cpdef clocal_exp_editsim_withbp(DBL_C[:, :] mat1, DBL_C[:, :] mat2, DBL_C a = 0.
     cdef INT_C dp_max_y = -1
     cdef np.ndarray[INT_C, ndim=2] down = np.zeros((nrow+1, ncol+1), dtype = INT)
     cdef np.ndarray[INT_C, ndim=2] right = np.zeros((nrow+1, ncol+1), dtype = INT)
-    cdef DBL_C match
+    cdef DBL_C match, nspikes1, nspikes2
     cdef Pair dirpair
-    cdef DBL_C down_score,right_score
+    cdef DBL_C down_score, right_score
     for col1 in range(nrow):
         for col2 in range(ncol):
             match = 0
+            nspikes1 = nspikes2 = 0
             for row in range(nneuron):
-                match += mat1[row, col1] * mat2[row, col2]            
-            match = -10 if match == 0 else match
-            # For Down
-            # Comparing options: newly extend a gap or extend the exsinting gap
-            dirpair = pairmax2(
-                dp[col1, col2+1] - cexp(a, 1) + 1,
-                dp[col1-down[col1, col2+1], col2+1] - cexp(a, down[col1, col2+1] + 1) + 1
-            )
-            down[col1+1, col2+1] = 1 if dirpair.idx == 0 else down[col1, col2+1] + 1
-            down_score = dp[col1-down[col1+1, col2+1]+1, col2+1] - cexp(a, down[col1+1, col2+1]) + 1
-            # For Rightp
-            # Comparing options: newly extend a gap or extend the exsinting gap
-            dirpair = pairmax2(
-                dp[col1+1, col2] - cexp(a, 1) + 1,
-                dp[col1+1, col2-right[col1+1, col2]] - cexp(a, right[col1+1, col2] + 1) + 1
-            )
-            right[col1+1, col2+1] = 1 if dirpair.idx == 0 else right[col1+1, col2] + 1
-            right_score = dp[col1+1, col2-right[col1+1, col2+1]+1] - cexp(a, right[col1+1, col2+1]) + 1
+                nspikes1 += mat1[row, col1]
+                nspikes2 += mat2[row, col2]
+                match += mat1[row, col1] * mat2[row, col2]  
+            if not zerospikes_penalty and (nspikes1 == 0 or nspikes2 == 0):
+                down[col1+1, col2+1] = down[col1, col2+1]
+                down_score = dp[col1-down[col1+1, col2+1]+1, col2+1] - cexp(a, down[col1+1, col2+1]) + 1
+                # For Right
+                right[col1+1, col2+1] = right[col1+1, col2]
+                right_score = dp[col1+1, col2-right[col1+1, col2+1]+1] - cexp(a, right[col1+1, col2+1]) + 1  
+            else:
+                match = -10 if match == 0 else match
+                # For Down
+                # Comparing options: newly extend a gap or extend the exsinting gap
+                dirpair = pairmax2(
+                    dp[col1, col2+1] - cexp(a, 1) + 1,
+                    dp[col1-down[col1, col2+1], col2+1] - cexp(a, down[col1, col2+1] + 1) + 1
+                )
+                down[col1+1, col2+1] = 1 if dirpair.idx == 0 else down[col1, col2+1] + 1
+                down_score = dp[col1-down[col1+1, col2+1]+1, col2+1] - cexp(a, down[col1+1, col2+1]) + 1
+                # For Right
+                # Comparing options: newly extend a gap or extend the exsinting gap
+                dirpair = pairmax2(
+                    dp[col1+1, col2] - cexp(a, 1) + 1,
+                    dp[col1+1, col2-right[col1+1, col2]] - cexp(a, right[col1+1, col2] + 1) + 1
+                )
+                right[col1+1, col2+1] = 1 if dirpair.idx == 0 else right[col1+1, col2] + 1
+                right_score = dp[col1+1, col2-right[col1+1, col2+1]+1] - cexp(a, right[col1+1, col2+1]) + 1
             # Update dp
             pair = pairmax4(
                 0,
