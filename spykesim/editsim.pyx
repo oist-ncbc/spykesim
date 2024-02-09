@@ -264,7 +264,7 @@ class FromBinMat(object):
         
 DBL = np.double
 ctypedef np.double_t DBL_C
-INT = np.int
+INT = np.int_ # previously: np.int
 ctypedef np.int_t INT_C
 
 cdef inline DBL_C max2(DBL_C a, DBL_C b):

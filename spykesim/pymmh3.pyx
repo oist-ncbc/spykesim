@@ -3,7 +3,7 @@ import numpy as np
 cimport numpy as np
 DBL = np.double
 ctypedef np.double_t DBL_C
-INT = np.int
+INT = np.int_ # previously: np.int
 ctypedef np.int_t INT_C
 
 '''

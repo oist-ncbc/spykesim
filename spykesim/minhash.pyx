@@ -62,7 +62,7 @@ def generate_signature_matrix(minhash, csc_mat, njobs=-1):
 
 
 def generate_signature_matrix_cpu_single(numhash, numband, bandwidth, csc_mat):
-    signature_matrix = np.zeros((numhash, csc_mat.shape[1]), dtype=np.uint32)
+    signature_matrix = np.zeros((numhash, csc_mat.shape[1])).astype(np.uint32) # previously: dtype=np.uint32
     for row in range(numhash):
         for col in range(csc_mat.shape[1]):
             idsets = csc_mat[:, col].indices
@@ -73,7 +73,7 @@ def generate_signature_matrix_cpu_single(numhash, numband, bandwidth, csc_mat):
     return signature_matrix
 
 def _generate_signature_vec(numhash, numband, bandwidth, csc_mat, col):
-    signature_vec = np.zeros(numhash, dtype=np.uint32)
+    signature_vec = np.zeros(numhash).astype(np.uint32) # previously: dtype=np.uint32
     idsets = csc_mat[:, col].indices
     for row in range(numhash):
         if len(idsets) > 0:
@@ -84,7 +84,7 @@ def _generate_signature_vec(numhash, numband, bandwidth, csc_mat, col):
 
 def generate_signature_matrix_cpu_multi(numhash, numband, bandwidth, csc_mat, njobs):
     njobs = os.cpu_count() if njobs == -1 else njobs
-    signature_matrix = np.zeros((numhash, csc_mat.shape[1]), dtype=np.uint32)
+    signature_matrix = np.zeros((numhash, csc_mat.shape[1])).astype(np.uint32) # previously: dtype=np.uint32
     worker = partial(
         _generate_signature_vec,
         numhash=numhash,

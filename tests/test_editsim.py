@@ -10,12 +10,12 @@ def genpoisson_spiketrain(rate, dt, duration):
     events = np.cumsum(np.random.exponential(scale = 1 / rate, size = int(duration*rate + offset)))
     return np.round(events[np.logical_and(0 < events, events < duration)], -int(np.log10(dt)))
 def genpoisson_spiketrains(nneurons, rate, dt, duration):
-    spike_timings = np.array([], dtype = np.float)
-    spike_neurons = np.array([], dtype = np.int)
+    spike_timings = np.array([], dtype = np.float_)
+    spike_neurons = np.array([], dtype = np.int_)
     for n in range(nneurons):
         spike_train = genpoisson_spiketrain(rate, dt, duration)
         spike_timings = np.r_[spike_timings, spike_train]
-        spike_neurons = np.r_[spike_neurons, n * np.ones_like(spike_train, dtype = np.int)]
+        spike_neurons = np.r_[spike_neurons, n * np.ones_like(spike_train, dtype = np.int_)]
     return pd.DataFrame({
         "neuronid": spike_neurons,
         "spiketime": spike_timings
@@ -25,8 +25,8 @@ def gen_sequence(nneurons = 10, seqlen = 0.1, dt = 0.001):
     return np.round(np.linspace(dt, seqlen-dt, nneurons), int(-np.log10(dt)))
 
 def gen_sequences(neurons = np.arange(10), nsequences = 10, start = 0, end = 600, seqlen = 0.1, dt = 0.001):
-    spike_timings = np.array([], dtype = np.float)
-    spike_neurons = np.array([], dtype = np.int)
+    spike_timings = np.array([], dtype = np.float_)
+    spike_neurons = np.array([], dtype = np.int_)
     nneurons = len(neurons)
     sequence_onsets = np.arange(start, end - seqlen, seqlen)
     for onset in sequence_onsets:

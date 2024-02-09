@@ -14,7 +14,7 @@ def jaccard(csc_mat, col1, col2):
 
 class SimmatTestCase(TestCase):
     def setUp(self):
-        a = np.zeros((20, 10), dtype=np.int)
+        a = np.zeros((20, 10), dtype = np.int_)
         a[1:6, 0] = 1
         a[1:7, 1] = 1
         a[1:4, 2] = 1
